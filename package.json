@@ -1,0 +1,13 @@
+{
+  "name": "serenity-list",
+  "description": "A web-api server that get list of challenges from Louder Cloud to Topcoder",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "express": "^4.2.0",
+    "fs-extra": "^0.11.0",
+    "lodash": "^2.4.1",
+    "pg": "^3.4.1",
+    "sequelize": "^1.7.9"
+  }
+}
