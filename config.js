@@ -26,7 +26,8 @@ module.exports = {
   /**
    * Which port will this application listen to
    */
-  port: 12345,
+  //port: 12345,
+  port: process.env.PORT || 3000,
   /**
    * URL Prefix that is used for Challenge URL sent to the client
    * Please refer to below link for more information
