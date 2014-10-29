@@ -8,6 +8,8 @@
  * It's the same with Challenge model used in serenity-core,
  * but it adds hasMany relationship with ChallengeRegistrant model,
  * and remove the other unneeded relationships.
+ *
+ * Added Requirement field with association.
  */
 module.exports = function(sequelize, DataTypes) {
 
@@ -29,13 +31,14 @@ module.exports = function(sequelize, DataTypes) {
     description: DataTypes.TEXT,
     registeredDescription: DataTypes.TEXT,
     tags: DataTypes.ARRAY(DataTypes.TEXT),
-    accountId: DataTypes.STRING(32),
-    }, {
-      tableName : 'challenges',
-      associate : function(models) {
-        Challenge.hasMany(models.ChallengeRegistrant);
-      }
-    });
+    accountId: DataTypes.STRING(32)
+  }, {
+    tableName : 'challenges',
+    associate : function(models) {
+      Challenge.hasMany(models.ChallengeRegistrant);
+      Challenge.hasMany(models.Requirement, {through: models.ChallengeRequirement});
+    }
+  });
 
   return Challenge;
 
