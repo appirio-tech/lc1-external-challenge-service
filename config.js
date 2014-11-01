@@ -33,5 +33,6 @@ module.exports = {
    * Please refer to below link for more information
    *   https://github.com/topcoderinc/serenity-core/issues/46
    */
-  urlPrefix: 'http://serenity-core1.herokuapp.com/#!/challenges/'
+  urlPrefix: 'http://serenity-core1.herokuapp.com/#!/challenges/',
+  uploadPath: 'uploads'
 };
