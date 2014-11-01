@@ -135,3 +135,19 @@ exports.submit = function(req, res, next) {
   };
   next();
 };
+
+exports.upload = function(req, res, next) {
+  var metadata = req.files;
+  if (!metadata || !metadata.submissionFile) {
+    req.data = {
+      error: {
+        details: 'Error while trying to read uploaded file: Make sure to upload using the \'submissionFile\' input field'
+      }
+    };
+    return next();
+  }
+
+  // file is stored at metadata.submissionFile.path
+  console.log('Uploaded file: ' + metadata.submissionFile.path);
+  next();
+};

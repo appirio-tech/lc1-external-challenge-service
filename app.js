@@ -15,6 +15,8 @@ var routeHelper = require('./lib/routeHelper');
 var datasource = require('./datasource').init(config);
 var challenges = require('./controllers/challenges');
 var cors = require('cors');
+var multer = require('multer');
+var path = require('path');
 
 /**
  * Initialize ExpressJS.
@@ -24,6 +26,14 @@ var app = express();
 // Add cors support
 app.use(cors());
 app.options('*', cors());
+
+// Add multer support for file uploads
+app.use(multer({
+  dest: path.join('.', config.uploadPath),
+  rename: function (fieldname, filename) {
+    return filename.replace(/\W+/g, '-').toLowerCase() + Date.now();
+  }
+}));
 
 /**
  * Define route /getActiveChallenges using GET method.
@@ -59,6 +69,12 @@ app.route('/challenges/:challengeId/documents')
 
 app.route('/develop/challenges/:challengeId/submit')
   .post(challenges.submit, routeHelper.renderJson);
+
+/**
+ * Upload
+ */
+app.route('/develop/challenges/:challengeId/upload')
+  .post(challenges.upload, routeHelper.renderJson);
 
 /**
  * Start listening to a specific port 12345.
