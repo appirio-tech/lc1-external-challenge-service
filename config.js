@@ -3,6 +3,9 @@
  */
 'use strict';
 
+var path = require('path'),
+  rootPath = path.normalize(__dirname);
+
 module.exports = {
 
   /**
@@ -33,5 +36,36 @@ module.exports = {
    * Please refer to below link for more information
    *   https://github.com/topcoderinc/serenity-core/issues/46
    */
-  urlPrefix: 'http://serenity-core1.herokuapp.com/#!/challenges/'
+  urlPrefix: 'http://serenity-core1.herokuapp.com/#!/challenges/',
+  root: rootPath,
+  storageProviders : {
+    local: {
+      /**
+       * This path is needed to load the provider during application load
+       * @type {String}
+       */
+      path: './middleware/LocalUploadMiddleware',
+      options: {
+        /**
+         * Unique Id for this storage provider
+         * NOTE: Every storage provider should have a unique id
+         * @type {Number}
+         */
+        id: 1,
+        /**
+         * These are upload directories for local storage provider
+         * @type {String}
+         */
+        uploadsDirectory: './uploads',
+        tempDir: './temp'
+      }
+    }
+  },
+  uploads : {
+    /**
+     * Should be configured in storageProviders
+     * @type {String}
+     */
+    storageProvider : 'local'
+  }
 };

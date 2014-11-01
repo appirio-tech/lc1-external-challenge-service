@@ -17,6 +17,12 @@ var challenges = require('./controllers/challenges');
 var cors = require('cors');
 
 /**
+ * File controller
+ * @type {Object}
+ */
+var files = require('./controllers/files');
+
+/**
  * Initialize ExpressJS.
  */
 var app = express();
@@ -24,6 +30,20 @@ var app = express();
 // Add cors support
 app.use(cors());
 app.options('*', cors());
+
+/**
+ * Initializing storage provider
+ */
+var storageProviders = config.storageProviders,
+  providerName = config.uploads.storageProvider;
+
+var provider;
+if(storageProviders.hasOwnProperty(providerName)) {
+  var providerConfig = storageProviders[providerName];
+  provider = require(config.root + '/' + providerConfig.path)(providerConfig.options, config);
+} else {
+  throw new Error(providerName + 'is not configured in Storage Providers');
+}
 
 /**
  * Define route /getActiveChallenges using GET method.
@@ -59,6 +79,13 @@ app.route('/challenges/:challengeId/documents')
 
 app.route('/develop/challenges/:challengeId/submit')
   .post(challenges.submit, routeHelper.renderJson);
+
+/**
+ * Upload files
+ */
+app.route('/develop/challenges/:challengeId/upload')
+  .all(provider.store)
+  .post(files.uploadHandler, routeHelper.renderJson);
 
 /**
  * Start listening to a specific port 12345.
