@@ -7,7 +7,7 @@
 /**
  * Module dependencies.
  */
-var datasource = require('./../../datasource').getDataSource();
+var datasource = require('./../datasource').getDataSource();
 var Challenge = datasource.Challenge;
 var config = require('../config');
 var routeHelper = require('../lib/routeHelper');
@@ -33,8 +33,9 @@ exports.uploadHandler = function(req, res, next) {
   Challenge.find(challengeId).success(function(challenge) {
     if(challenge) {
       // challenge exists, proceed with file uplaod logic
-      var title = req.body.title;
-      if(!title) {
+      var title;
+      var isTitle = req.body && req.body.title;
+      if(!isTitle) {
         // If title is empty add dummy title
         // can return error to client
         title = 'File Title';

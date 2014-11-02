@@ -3,8 +3,9 @@
  */
 'use strict';
 
-var path = require('path')
-  rootPath = path.normalize(__dirname + '.');
+var path = require('path'),
+  // The path should not end in forward slash
+  rootPath = path.normalize(__dirname);
 
 module.exports = {
   root: rootPath,
@@ -96,4 +97,5 @@ module.exports = {
         }
       }
     }
+  }
 };
