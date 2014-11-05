@@ -14,6 +14,8 @@ var config = require('./config.js');
 var routeHelper = require('./lib/routeHelper');
 var datasource = require('./datasource').init(config);
 var challenges = require('./controllers/challenges');
+var files = require('./controllers/files');
+var storageProviderFactory = require('./lib/storageProviderFactory');
 var cors = require('cors');
 
 /**
@@ -24,6 +26,28 @@ var app = express();
 // Add cors support
 app.use(cors());
 app.options('*', cors());
+
+var providerName = config.uploads.storageProvider;
+
+
+/**
+ * Currently in serenity-core in the files controller also the storage provider is initialized
+ * That is not correct the poviders should be initialized only once.
+ * I am adding factory pattern to storage providers similar to Datasource,
+ * this may not be useful for this small application, but it is architecturally correct
+ */
+
+/**
+ * This will throw an error if providerName is not configured in storage providers configuration.
+ */
+var provider = storageProviderFactory.getProvider(providerName);
+
+/**
+ * Define route for file upload
+ */
+app.route('/develop/challenges/:challengeId/upload')
+  .all(provider.store)
+  .post(files.uploadHandler, routeHelper.renderJson);
 
 /**
  * Define route /getActiveChallenges using GET method.
