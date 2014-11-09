@@ -12,7 +12,6 @@
 var express = require('express');
 var config = require('./config.js');
 var routeHelper = require('./lib/routeHelper');
-var datasource = require('./datasource').init(config);
 var challenges = require('./controllers/challenges');
 var files = require('./controllers/files');
 var storageProviderFactory = require('./lib/storageProviderFactory');

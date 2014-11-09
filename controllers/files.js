@@ -7,18 +7,22 @@
 /**
  * Module dependencies.
  */
-var datasource = require('./../datasource').getDataSource();
-var Challenge = datasource.Challenge;
+// var datasource = require('./../datasource').getDataSource();
+// var Challenge = datasource.Challenge;
 var config = require('../config');
 var routeHelper = require('../lib/routeHelper');
+var Challenge = require('./challenge-consumer').Challenge;
 
 var HTTP_BAD_REQUEST = 400;
+
+var client = new Challenge(config.challengeApiUrl);
+
 
 /**
  * upload file handler
  */
 exports.uploadHandler = function(req, res, next) {
-  var challengeId = req.params.challengeId;
+  
   // checking upload error
   var err = req.fileUploadStatus.error;
   if(err) {
@@ -30,32 +34,36 @@ exports.uploadHandler = function(req, res, next) {
   /**
    * Added challenge exists or not validation
    */
-  Challenge.find(challengeId).success(function(challenge) {
-    if(challenge) {
-      // challenge exists, proceed with file uplaod logic
-      var title;
-      var isTitle = req.body && req.body.title;
-      if(!isTitle) {
-        // If title is empty add dummy title
-        // can return error to client
-        title = 'File Title';
-      }
-      var fileEntity = req.fileUploadStatus.file;
-      if(fileEntity) {
-        fileEntity.title = title;
-        // can save the fileEntity to database
-        next();
+  client.getChallengesByChallengeId(req.params)
+    .then(function(result) {
+      var challenge = result.body.content;
+      if(challenge) {
+        // challenge exists, proceed with file uplaod logic
+        var title;
+        var isTitle = req.body && req.body.title;
+        if(!isTitle) {
+          // If title is empty add dummy title
+          // can return error to client
+          title = 'File Title';
+        }
+        var fileEntity = req.fileUploadStatus.file;
+        if(fileEntity) {
+          fileEntity.title = title;
+          // can save the fileEntity to database
+        } else {
+          routeHelper.addErrorMessage(req,'UploadError', 'Unexpected error. Try again after some time', req.fileUploadStatus.statusCode);
+        }
       } else {
-        routeHelper.addError(req,'UploadError', {details: 'Unexpected error. Try again after some time'},req.fileUploadStatus.statusCode);
-        next();
+        // challenge doesn't exist return BadRequest error to client
+        routeHelper.addErrorMessage(req, 'BadRequest', 'Challenge doesn\'t exist for challenge id ' + req.params.challengeId, HTTP_BAD_REQUEST);
       }
-    } else {
-      // challenge doesn't exist return BadRequest error to client
-      routeHelper.addError(req, 'BadRequest', {details: 'Challenge doesn\'t exist for challenge id ' + challengeId}, HTTP_BAD_REQUEST);
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
       next();
-    }
-  }).error(function(err) {
-    routeHelper.addError(req, err);
-    next();
-  });
+    })
+    .done();  // end promise
+
 };

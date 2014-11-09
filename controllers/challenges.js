@@ -6,75 +6,80 @@
 /**
  * Module Dependencies.
  */
-var datasource = require('../datasource').getDataSource();
-var Challenge = datasource.Challenge;
-var ChallengeRegistrant = datasource.ChallengeRegistrant;
-var Requirement = datasource.Requirement;
+var config = require('../config.js');
 var _ = require('lodash');
 var routeHelper = require('../lib/routeHelper');
 var ChallengeTCFormat = require('../format/challenges-tc-format');
+var Challenge = require('./challenge-consumer').Challenge;
+
+var client = new Challenge(config.challengeApiUrl);
+
+var CHALLENGE_FIELDS = ['id','regStartAt','subEndAt','completedAt','title','overview','description','tags','prizes',
+      'account','accountId','source','sourceId','status','createdAt','updatedAt','createdBy','updatedBy'];
+
+
+function _getChallengeParams(reqParams) {
+  var challengeFields = CHALLENGE_FIELDS.join(',');
+  // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
+  // so using userId property for registrant handle.
+  var params = {
+    fields: challengeFields+',participants,submissions',
+  };
+  if (reqParams) {
+    _.extend(params, reqParams);
+  }
+  return params;
+}
 
 /**
  * allActiveChallenges is invoked by /getActiveChallenges.
- * allActiveChallenges queries all Challenges from PostgreSQL that are not 'complete' or 'draft'.
+ * allActiveChallenges queries all Challenges from lc1-challenge-service that are 'SUBMISSION' or 'REVIEW' status.
  * Those challenges are then mapped into the same json format used currently by Topcoder
  *   with the help of ChallengeTCFormat.Convert function.
  * All mapped challenges are sent as the response.
- *
- * It should also be noted that if there is no challenges returned, an empty array is sent as the response.
  */
-exports.allActiveChallenges = function (req, res) {
-  Challenge.findAll({
-    where: ['"status" <> \'complete\' AND "status" <> \'draft\''],
-    include: [ChallengeRegistrant]
-  }).success(function (result) {
-    var allChallengesInTCFormat = [];
-    for (var i = 0; i < result.length; i++) {
-      allChallengesInTCFormat.push(
-        ChallengeTCFormat.Convert(result[i].dataValues)
-      );
+exports.allActiveChallenges = function(req, res, next) {
+  var params = _getChallengeParams();
+  // only active challenges
+  params.filter = 'status=in(\'SUBMISSION\',\'REVIEW\')';
+  client.getChallenges(params)
+    .then(function (result) {
+    var challenges = result.body.content;
+
+    var tcChallenges = [];
+    for (var i = 0; i < challenges.length; i++) {
+      tcChallenges.push(ChallengeTCFormat.Convert(challenges[i]));
     }
-    res.json(allChallengesInTCFormat);
+    req.data = tcChallenges;
   })
-    .error(function (err) {
-      console.log('list err: ' + JSON.stringify(err));
-      return res.status(500).json({
-        error: 'Cannot list the challenges'
-      });
-    });
-};
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
+}
 
 /**
  * Function to get challenge detail, including requirements data.
  */
-exports.challenge = function(req, res) {
-  var challengeId = req.params.challengeId;
-  Challenge.find({
-    where: {"id": challengeId},
-    include: [ChallengeRegistrant, Requirement]
-  })
-    .success(function (result) {
-      var challenge = result.dataValues;
-
-      var requirementDatas = challenge.requirements;
-      challenge.requirements = [];
-      _.forEach(requirementDatas, function(data) {
-        // remove unnecessary sequelize related data.
-        delete data.dataValues.challengeRequirement;
-
-        // add requirement data, but not sequelize object to list.
-        challenge.requirements.push(data.dataValues)
-
-      });
-      // convert the format and return in json.
-      res.json(ChallengeTCFormat.Convert(challenge));
+exports.challenge = function(req, res, next) {
+  var params = _getChallengeParams(req.params);
+  // add requirements
+  params.fields += ',requirements';
+  client.getChallengesByChallengeId(params)
+    .then(function(result) {
+      var challenge = result.body.content;
+      req.data = ChallengeTCFormat.Convert(challenge);
     })
-    .error(function (err) {
-      console.log('Get challenge err: ' + JSON.stringify(err));
-      return res.status(500).json({
-        error: 'Cannot get the challenge'
-      });
-    });
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
 
 };
 
@@ -96,21 +101,26 @@ exports.getCheckpoints = function(req, res) {
  * register to a challenge
  */
 exports.register = function(req, res, next) {
-  var data = {
+  var params = {
     challengeId: req.params.challengeId,
-    userId: 123,
-    handle: '_indy-' + Math.random(),
-    role: 'registered'
+    body: {
+      userId: 123,
+      role: 'submitter'
+    }
   };
 
-  ChallengeRegistrant.create(data).success(function () {
-    req.data = {message: "ok"};
-    next();
-  })
-    .error(function (err) {
-      routeHelper.addError(req, 'DatabaseSaveError', err);
+  client.postChallengesByChallengeIdParticipants(params)
+    .then(function (result) {
+      req.data = result.body;
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
       next();
-    });
+    })
+    .done();  // end promise
+
 };
 
 /**

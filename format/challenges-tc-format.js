@@ -17,14 +17,14 @@ var _ = require('lodash');
 var converter = new Showdown.converter();
 
 /**
- * Convert is tasked to map attributes in Challenge data queried from PostgreSQL
+ * Convert is tasked to map attributes in Challenge data queried from lc-challenge-service
  * into attributes in JSON format currently used by Topcoder.
  *
  * For more info in table mapping, visit:
  *   https://github.com/topcoderinc/serenity-core/issues/46
  *
  * There are several notes here:
- * - numRegistrants is calculated by setting up the relationship via the model.
+ * - numRegistrants is calculated by participants in the challenge.
  * - All dates are converted to UTC Time.
  * - currentPhaseRemainingTime is returned in milliseconds.
  *
@@ -32,18 +32,20 @@ var converter = new Showdown.converter();
  */
 
 module.exports.Convert = function(ChallengeLCFormat) {
-  var regStartDateInUTC = ChallengeLCFormat.regStartDate.toUTCString();
-  var subEndDateInUTC = ChallengeLCFormat.subEndDate.toUTCString();
+  var regStartDateInUTC = new Date(ChallengeLCFormat.regStartAt).toUTCString();
+  var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toUTCString();
   var nowInUTC = (new Date()).toUTCString();
   var differenceEndAndNow = new Date(subEndDateInUTC)-new Date(nowInUTC);
   if (differenceEndAndNow < 0) differenceEndAndNow = 0;
 
-  ChallengeLCFormat.prizes = [];
-
   var phaseStatus;
   var currentStatus;
   switch(ChallengeLCFormat.status) {
-    case 'ACTIVE':
+    case 'SUBMISSION':
+      phaseStatus = 'Submission';
+      currentStatus = 'Active';
+      break;
+    case 'REVIEW':
       phaseStatus = 'Submission';
       currentStatus = 'Active';
       break;
@@ -62,16 +64,16 @@ module.exports.Convert = function(ChallengeLCFormat) {
   if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {
     detailData += "\n## Requirements ##";
     for(var i = 1; i < ChallengeLCFormat.requirements.length; i++){
-      detailData += "\n" + i + ". " + ChallengeLCFormat.requirements[i].body;
+      detailData += "\n" + i + ". " + ChallengeLCFormat.requirements[i].requirementText;
     }
   }
   var detailDataHtml = converter.makeHtml(detailData);
 
-  var challengeRegistrants = _.map(ChallengeLCFormat.challengeRegistrants, function(registrant) {
-    return {
-      handle: registrant.handle,
+  var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
+     return {
+      handle: participant.userId, // @TODO this should be participant.user.name, but currently user return null from http://lc1-challenge-service.herokuapp.com/
       reliability: 'N/A',
-      registrationDate: registrant.createdAt,
+      registrationDate: participant.createdAt,
       submissionDate: '', // @TODO find if this user submitted and add a date
       rating: 'N/A',
       colorStyle: 'color: #000000'
@@ -80,7 +82,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
 
   var ChallengeTCFormat = {
     source: 'serenity',
-    challengeType: ChallengeLCFormat.type,
+    challengeType: 'Architecture',
     challengeName: ChallengeLCFormat.title,
     challengeUrl: config.urlPrefix + ChallengeLCFormat.id,
     challengeId: ChallengeLCFormat.id,
@@ -95,15 +97,15 @@ module.exports.Convert = function(ChallengeLCFormat) {
     topCheckPointPrize: "",
     platforms: ChallengeLCFormat.tags,
     technologies: ChallengeLCFormat.tags,
-    numSubmissions: 0,
+    numSubmissions: ChallengeLCFormat.submissions.length,
     numRegistrants: challengeRegistrants.length,
-    numberOfSubmissions: 0,
+    numberOfSubmissions: ChallengeLCFormat.submissions.length,
     numberOfRegistrants: challengeRegistrants.length,
     registrants: challengeRegistrants,
-    postingDate: regStartDateInUTC,
-    registrationEndDate: ChallengeLCFormat.subEndDate,
-    checkpointSubmissionEndDate: ChallengeLCFormat.subEndDate,
-    submissionEndDate: subEndDateInUTC,
+    postingDate: ChallengeLCFormat.regStartAt,
+    registrationEndDate: ChallengeLCFormat.subEndAt,
+    checkpointSubmissionEndDate: ChallengeLCFormat.subEndAt,
+    submissionEndDate: ChallengeLCFormat.subEndAt,
     type: "develop",
     forumLink: config.urlPrefix + ChallengeLCFormat.id,
     appealsEndDate: "",
@@ -113,14 +115,14 @@ module.exports.Convert = function(ChallengeLCFormat) {
     reliabilityBonus: 0,
     directUrl: null,
     isPrivate: false,
-    currentPhaseEndDate: subEndDateInUTC,
+    currentPhaseEndDate: ChallengeLCFormat.subEndAt,
     currentPhaseRemainingTime: differenceEndAndNow,
     currentPhaseName: 'Submission', //phaseStatus, Hard code utnil data is cleaner
     prizes: ChallengeLCFormat.prizes,
     prize: ChallengeLCFormat.prizes,
     challengeCommunity: 'develop',
     registrationOpen: 'Yes',
-    phases: [{scheduledStartTime: ChallengeLCFormat.regStartDate}],
+    phases: [{scheduledStartTime: ChallengeLCFormat.regStartAt}],
     event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15" }
   };
 
