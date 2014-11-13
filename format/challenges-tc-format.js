@@ -82,6 +82,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
 
   var ChallengeTCFormat = {
     source: 'serenity',
+    isLC: true,
     challengeType: 'Architecture',
     challengeName: ChallengeLCFormat.title,
     challengeUrl: config.urlPrefix + ChallengeLCFormat.id,
