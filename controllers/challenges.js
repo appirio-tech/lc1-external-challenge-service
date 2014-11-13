@@ -23,7 +23,7 @@ function _getChallengeParams(reqParams) {
   // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
   // so using userId property for registrant handle.
   var params = {
-    fields: challengeFields+',participants,submissions',
+    fields: challengeFields+',participants,submissions'
   };
   if (reqParams) {
     _.extend(params, reqParams);
@@ -59,7 +59,7 @@ exports.allActiveChallenges = function(req, res, next) {
       next();
     })
     .done();  // end promise
-}
+};
 
 /**
  * Function to get challenge detail, including requirements data.
