@@ -40,21 +40,26 @@ module.exports.Convert = function(ChallengeLCFormat) {
 
   var phaseStatus;
   var currentStatus;
+  var currentPhaseEndDate;
   switch(ChallengeLCFormat.status) {
     case 'SUBMISSION':
       phaseStatus = 'Submission';
       currentStatus = 'Active';
+      currentPhaseEndDate = subEndDateInUTC;
       break;
     case 'REVIEW':
       phaseStatus = 'Submission';
       currentStatus = 'Active';
+      currentPhaseEndDate = subEndDateInUTC;
       break;
     case 'COMPLETE':
       phaseStatus = 'Complete';
       currentStatus = 'Completed';
+      currentPhaseEndDate = '';
       break;
     default:
       phaseStatus = 'Draft';
+      currentPhaseEndDate = subEndDateInUTC;
       break;
   }
 
@@ -150,7 +155,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     checkpointSubmissionEndDate: ChallengeLCFormat.subEndAt,
     submissionEndDate: ChallengeLCFormat.subEndAt,
     type: "develop",
-    forumLink: config.urlPrefix + ChallengeLCFormat.id,
+    forumLink: "#lc-discussion",
     appealsEndDate: "",
     finalFixEndDate: "",
     currentStatus: currentStatus,
@@ -158,9 +163,9 @@ module.exports.Convert = function(ChallengeLCFormat) {
     reliabilityBonus: 0,
     directUrl: null,
     isPrivate: false,
-    currentPhaseEndDate: ChallengeLCFormat.subEndAt,
+    currentPhaseEndDate: currentPhaseEndDate,
     currentPhaseRemainingTime: differenceEndAndNow,
-    currentPhaseName: 'Submission', //phaseStatus, Hard code until data is cleaner
+    currentPhaseName: phaseStatus,
     prizes: ChallengeLCFormat.prizes,
     prize: ChallengeLCFormat.prizes,
     challengeCommunity: 'develop',
@@ -202,7 +207,7 @@ module.exports.convertResult = function(ChallengeLCFormat) {
       points: 0,
       submissionStatus: submissionStatus,
       submissionDate: new Date(scorecard.submission.createdAt).toISOString(),
-      submissionDownloadLink: scorecard.submission.file.fileUrl
+      submissionDownloadLink: scorecard.submission.files[0].fileUrl
     };
   });
 

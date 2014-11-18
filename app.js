@@ -71,7 +71,7 @@ app.route('/develop/challenges/checkpoint/:challengeId')
 /**
  * Get Results
  */
-app.route('/develop/challenges/results/:challengeId')
+app.route('/develop/challenges/result/:challengeId')
     .get(challenges.getResults, routeHelper.renderJson);
 
 /**

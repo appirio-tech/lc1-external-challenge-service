@@ -15,7 +15,7 @@ var Challenge = require('./challenge-consumer').Challenge;
 var client = new Challenge(config.challengeApiUrl);
 
 var CHALLENGE_FIELDS = ['id','regStartAt','subEndAt','completedAt','title','overview','description','tags','prizes',
-      'account','accountId','source','sourceId','status','createdAt','updatedAt','createdBy','updatedBy'];
+      'projectId','projectSource','source','sourceId','status','createdAt','updatedAt','createdBy','updatedBy'];
 
 
 function _getChallengeParams(reqParams) {
@@ -87,8 +87,14 @@ exports.challenge = function(req, res, next) {
  * Function to get results for a challenge
  */
 exports.getResults = function(req, res, next) {
-  var params = _getChallengeParams(req.params);
-  params.field += 'scorecards(id,submission(status,files,submitterId),submissionId,scoreSum,scoreMax,pay,place,prize)';
+  var challengeFields = CHALLENGE_FIELDS.join(',');
+  // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
+  // so using userId property for registrant handle.
+  var params = {
+    fields: challengeFields + ',participants,submissions,scorecards(id,submission(status,files,submitterId,createdAt,submitterHandle),submissionId,scoreSum,scoreMax,pay,place,prize)'
+  };
+  _.extend(params, req.params);
+
   client.getChallengesByChallengeId(params)
       .then(function(result) {
         var challenge = result.body.content;
