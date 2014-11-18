@@ -23,7 +23,7 @@ function _getChallengeParams(reqParams) {
   // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
   // so using userId property for registrant handle.
   var params = {
-    fields: challengeFields+',participants,submissions'
+    fields: challengeFields+',participants,submissions,scorecards(id,submission,submissionId,scoreSum,scoreMax,pay,place,prize)'
   };
   if (reqParams) {
     _.extend(params, reqParams);
@@ -81,6 +81,26 @@ exports.challenge = function(req, res, next) {
     })
     .done();  // end promise
 
+};
+
+/**
+ * Function to get results for a challenge
+ */
+exports.getResults = function(req, res, next) {
+  var params = _getChallengeParams(req.params);
+  params.field += 'scorecards(id,submission(status,files,submitterId),submissionId,scoreSum,scoreMax,pay,place,prize)';
+  client.getChallengesByChallengeId(params)
+      .then(function(result) {
+        var challenge = result.body.content;
+        req.data = ChallengeTCFormat.convertResult(challenge);
+      })
+      .fail(function (err) {
+        routeHelper.addError(req, err);
+      })
+      .fin(function () {
+        next();
+      })
+      .done();  // end promise
 };
 
 /**

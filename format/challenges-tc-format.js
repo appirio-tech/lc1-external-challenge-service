@@ -32,8 +32,8 @@ var converter = new Showdown.converter();
  */
 
 module.exports.Convert = function(ChallengeLCFormat) {
-  var regStartDateInUTC = new Date(ChallengeLCFormat.regStartAt).toUTCString();
-  var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toUTCString();
+  var regStartDateInUTC = new Date(ChallengeLCFormat.regStartAt).toISOString();
+  var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toISOString();
   var nowInUTC = (new Date()).toUTCString();
   var differenceEndAndNow = new Date(subEndDateInUTC)-new Date(nowInUTC);
   if (differenceEndAndNow < 0) differenceEndAndNow = 0;
@@ -69,18 +69,60 @@ module.exports.Convert = function(ChallengeLCFormat) {
   }
   var detailDataHtml = converter.makeHtml(detailData);
 
+  var submissions =_.map(ChallengeLCFormat.scorecards, function(scorecard) {
+    var submissionStatus;
+    switch(scorecard.submission.status) {
+      case 'VALID':
+        submissionStatus = 'Active';
+        break;
+      case 'INVALID':
+        submissionStatus = 'Failed Review';
+        break;
+      case 'LATE':
+        submissionStatus = 'Failed Late';
+        break;
+      default:
+        submissionStatus = 'Active';
+        break;
+    }
+
+    return {
+      lcScorecardId: scorecard.id,
+      lcSubmissionId: scorecard.submission.id,
+      lcSubmitterId: scorecard.submission.submitterId,
+      handle: scorecard.submission.submitter_handle,
+      placement: scorecard.place,
+      screeningScore: 0,
+      initialScore: 0,
+      finalScore: scorecard.scoreSum,
+      points: 0,
+      submissionStatus: submissionStatus,
+      submissionDate: new Date(scorecard.submission.createdAt).toISOString()
+    }
+  });
+
   var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
-     return {
+    var participantSubmission = {submissionDate: ''};
+
+    _.forEach(submissions, function(submission) {
+      if (submission.lcSubmitterId == participant.userId) {
+        participantSubmission = submission;
+      }
+    });
+
+    return {
       handle: participant.userId, // @TODO this should be participant.user.name, but currently user return null from http://lc1-challenge-service.herokuapp.com/
       reliability: 'N/A',
       registrationDate: participant.createdAt,
-      submissionDate: '', // @TODO find if this user submitted and add a date
+      submissionDate: participantSubmission.submissionDate, // @TODO find if this user submitted and add a date
       rating: 'N/A',
-      colorStyle: 'color: #000000'
+      colorStyle: 'color: #000000',
+      lcSubmissionId: participantSubmission.lcSubmissionId
     };
   });
 
-  var ChallengeTCFormat = {
+
+  return {
     source: 'serenity',
     isLC: true,
     challengeType: 'Architecture',
@@ -103,7 +145,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     numberOfSubmissions: ChallengeLCFormat.submissions.length,
     numberOfRegistrants: challengeRegistrants.length,
     registrants: challengeRegistrants,
-    postingDate: ChallengeLCFormat.regStartAt,
+    postingDate: new Date(ChallengeLCFormat.regStartAt).toISOString(),
     registrationEndDate: ChallengeLCFormat.subEndAt,
     checkpointSubmissionEndDate: ChallengeLCFormat.subEndAt,
     submissionEndDate: ChallengeLCFormat.subEndAt,
@@ -118,14 +160,66 @@ module.exports.Convert = function(ChallengeLCFormat) {
     isPrivate: false,
     currentPhaseEndDate: ChallengeLCFormat.subEndAt,
     currentPhaseRemainingTime: differenceEndAndNow,
-    currentPhaseName: 'Submission', //phaseStatus, Hard code utnil data is cleaner
+    currentPhaseName: 'Submission', //phaseStatus, Hard code until data is cleaner
     prizes: ChallengeLCFormat.prizes,
     prize: ChallengeLCFormat.prizes,
     challengeCommunity: 'develop',
     registrationOpen: 'Yes',
     phases: [{scheduledStartTime: ChallengeLCFormat.regStartAt}],
-    event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15" }
+    event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15"},
+    submissions: submissions
+  };
+};
+
+module.exports.convertResult = function(ChallengeLCFormat) {
+
+  var results = _.map(ChallengeLCFormat.scorecards, function(scorecard) {
+    var submissionStatus;
+    switch(scorecard.submission.status) {
+      case 'VALID':
+        submissionStatus = 'Active';
+        break;
+      case 'INVALID':
+        submissionStatus = 'Failed Review';
+        break;
+      case 'LATE':
+        submissionStatus = 'Failed Late';
+        break;
+      default:
+        submissionStatus = 'Active';
+        break;
+    }
+
+    return {
+      lcScorecardId: scorecard.id,
+      lcSubmissionId: scorecard.submission.id,
+      lcSubmitterId: scorecard.submission.submitterId,
+      handle: scorecard.submission.submitterHandle,
+      placement: scorecard.place,
+      screeningScore: 0,
+      initialScore: 0,
+      finalScore: scorecard.scoreSum,
+      points: 0,
+      submissionStatus: submissionStatus,
+      submissionDate: new Date(scorecard.submission.createdAt).toISOString(),
+      submissionDownloadLink: scorecard.submission.file.fileUrl
+    };
+  });
+
+  return {
+    isLC: true,
+    challengeCommunity: "develop",
+    challengeType: "Architecture",
+    challengeName: ChallengeLCFormat.title,
+    challengeId: ChallengeLCFormat.id,
+    registrants: ChallengeLCFormat.participants.length,
+    submissions: ChallengeLCFormat.submissions.length,
+    submissionsPassedScreening: ChallengeLCFormat.scorecards.length,
+    drPoints: 0,
+    submissionsPercentage: 0,
+    averageInitialScore: 0,
+    averageFinalScore: 0,
+    results: results
   };
 
-  return ChallengeTCFormat;
 };

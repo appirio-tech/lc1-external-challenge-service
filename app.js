@@ -69,6 +69,12 @@ app.route('/develop/challenges/checkpoint/:challengeId')
   .get(challenges.getCheckpoints, routeHelper.renderJson);
 
 /**
+ * Get Results
+ */
+app.route('/develop/challenges/results/:challengeId')
+    .get(challenges.getResults, routeHelper.renderJson);
+
+/**
  * Register to a challenge
  */
 app.route('/challenges/:challengeId/register')
