@@ -43,6 +43,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
   var currentPhaseEndDate;
   var registrationOpen;
   var submissionDisabled;
+  console.log(ChallengeLCFormat.id);
   switch(ChallengeLCFormat.status) {
     case 'SUBMISSION':
       phaseStatus = 'Submission';
@@ -86,34 +87,38 @@ module.exports.Convert = function(ChallengeLCFormat) {
 
   var submissions =_.map(ChallengeLCFormat.scorecards, function(scorecard) {
     var submissionStatus;
-    switch(scorecard.submission.status) {
-      case 'VALID':
-        submissionStatus = 'Active';
-        break;
-      case 'INVALID':
-        submissionStatus = 'Failed Review';
-        break;
-      case 'LATE':
-        submissionStatus = 'Failed Late';
-        break;
-      default:
-        submissionStatus = 'Active';
-        break;
+    if (scorecard.submission) {
+      switch(scorecard.submission.status) {
+        case 'VALID':
+          submissionStatus = 'Active';
+          break;
+        case 'INVALID':
+          submissionStatus = 'Failed Review';
+          break;
+        case 'LATE':
+          submissionStatus = 'Failed Late';
+          break;
+        default:
+          submissionStatus = 'Active';
+          break;
+      }
+
+      return {
+        lcScorecardId: scorecard.id,
+        lcSubmissionId: scorecard.submission.id,
+        lcSubmitterId: scorecard.submission.submitterId,
+        handle: scorecard.submission.submitter_handle,
+        placement: scorecard.place,
+        screeningScore: 0,
+        initialScore: 0,
+        finalScore: scorecard.scoreSum,
+        points: 0,
+        submissionStatus: submissionStatus,
+        submissionDate: new Date(scorecard.submission.createdAt).toISOString()
+      }
     }
 
-    return {
-      lcScorecardId: scorecard.id,
-      lcSubmissionId: scorecard.submission.id,
-      lcSubmitterId: scorecard.submission.submitterId,
-      handle: scorecard.submission.submitter_handle,
-      placement: scorecard.place,
-      screeningScore: 0,
-      initialScore: 0,
-      finalScore: scorecard.scoreSum,
-      points: 0,
-      submissionStatus: submissionStatus,
-      submissionDate: new Date(scorecard.submission.createdAt).toISOString()
-    }
+    return false;
   });
 
   var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
@@ -189,35 +194,40 @@ module.exports.convertResult = function(ChallengeLCFormat) {
 
   var results = _.map(ChallengeLCFormat.scorecards, function(scorecard) {
     var submissionStatus;
-    switch(scorecard.submission.status) {
-      case 'VALID':
-        submissionStatus = 'Active';
-        break;
-      case 'INVALID':
-        submissionStatus = 'Failed Review';
-        break;
-      case 'LATE':
-        submissionStatus = 'Failed Late';
-        break;
-      default:
-        submissionStatus = 'Active';
-        break;
+    if (scorecard.submission) {
+      switch(scorecard.submission.status) {
+        case 'VALID':
+          submissionStatus = 'Active';
+          break;
+        case 'INVALID':
+          submissionStatus = 'Failed Review';
+          break;
+        case 'LATE':
+          submissionStatus = 'Failed Late';
+          break;
+        default:
+          submissionStatus = 'Active';
+          break;
+      }
+
+      return {
+        lcScorecardId: scorecard.id,
+        lcSubmissionId: scorecard.submission.id,
+        lcSubmitterId: scorecard.submission.submitterId,
+        handle: scorecard.submission.submitterHandle,
+        placement: scorecard.place,
+        screeningScore: 0,
+        initialScore: 0,
+        finalScore: scorecard.scoreSum,
+        points: 0,
+        submissionStatus: submissionStatus,
+        submissionDate: new Date(scorecard.submission.createdAt).toISOString(),
+        submissionDownloadLink: scorecard.submission.files[0].fileUrl
+      };
+    } else {
+      return false;
     }
 
-    return {
-      lcScorecardId: scorecard.id,
-      lcSubmissionId: scorecard.submission.id,
-      lcSubmitterId: scorecard.submission.submitterId,
-      handle: scorecard.submission.submitterHandle,
-      placement: scorecard.place,
-      screeningScore: 0,
-      initialScore: 0,
-      finalScore: scorecard.scoreSum,
-      points: 0,
-      submissionStatus: submissionStatus,
-      submissionDate: new Date(scorecard.submission.createdAt).toISOString(),
-      submissionDownloadLink: scorecard.submission.files[0].fileUrl
-    };
   });
 
   return {
