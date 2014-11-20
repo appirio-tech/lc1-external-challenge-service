@@ -21,23 +21,32 @@ module.exports = {
   //port: 12345,
   port: process.env.PORT || 3000,
 
+  disableAuth: process.env.TC_SKIP_AUTH || false,
+
+  auth0: {
+    client: process.env.TC_AUTH0_CLIENT || 'foo',
+    secret: process.env.TC_AUTH0_SECRET || 'bar'
+  },
+
+  tcApi: process.env.TC_API_URL || 'https://api.topcoder.com/v2',
+
   /**
    * URL of lc1-challenge-service where Swagger client sends requests.
    */
   // challengeApiUrl: 'http://localhost:10010',   // for local challenge service
-  challengeApiUrl: 'http://lc1-challenge-service.herokuapp.com',
+  challengeApiUrl: process.env.CHALLENGE_LC_URL || 'http://lc1-challenge-service.herokuapp.com',
   /**
    * URL Prefix that is used for Challenge URL sent to the client
    * Please refer to below link for more information
    *   https://github.com/topcoderinc/serenity-core/issues/46
    */
-  urlPrefix: 'http://serenity-core1.herokuapp.com/#!/challenges/',
+  urlPrefix: process.env.URL_PREFIX || 'http://staging.lc.topcoder.com/#!/challenges/',
   uploads : {
     /**
      * Should be configured in storageProviders
      * @type {String}
      */
-    storageProvider : 'local'
+    storageProvider : process.env.STORAGE_PROVIDER || 'local'
   },
   /**
    * Storage providers configuration
@@ -59,7 +68,7 @@ module.exports = {
          * NOTE: Every storage provider should have a unique id
          * @type {Number}
          */
-        id: 1,
+        id: 'local',
         /**
          * These are upload directories for local storage provider
          * NOTE: The local middleware is modified, if the uploads and temp directory is not present it will create the directory
@@ -77,17 +86,17 @@ module.exports = {
          * This path is needed to load the provider during application load
          * @type {String}
          */
-        id: 2,
+        id: 'S3',
         /**
          * AWS configuration for s3 upload service
          * @type {Object}
          */
         aws: {
           secure: false,
-          key: 'KEY',
-          secret: 'SECRET_KEY',
-          bucket: 'bucket',
-          region: 'region'
+          key: process.env.AWS_KEY || 'foo',
+          secret: process.env.AWS_SECRET || 'bar',
+          bucket: process.env.AWS_BUCKET || 'bucket',
+          region: process.env.AWS_REGION || 'region'
         }
       }
     }

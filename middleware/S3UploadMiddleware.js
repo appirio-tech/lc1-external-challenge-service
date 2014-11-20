@@ -9,9 +9,8 @@
  *  * This method will set the request object property fileUploadStatus
  *  * fileUploadStatus : {
  *  *   file : {
- *  *      filePath : ''
+ *  *      fileUrl : ''
  *  *      tempPath : ''
- *  *      fileName : ''
  *  *      size : ''
  *  *      storageType : ''
  *  *   }
@@ -64,7 +63,7 @@ var multiparty = require('multiparty'),
   HTTP_NO_CONTENT = 204;
 
 var headers = {
-  'x-amz-acl': 'public-read',
+  'x-amz-acl': 'public-read'
 };
 
 var checkOptions = function(options) {
@@ -137,11 +136,10 @@ module.exports = function(options, config) {
       var part = results[1];
       var fileName = part.filename;
       headers['Content-Length'] = part.byteCount;
-      var targetPath = '/challenges' + '/' + req.params.challengeId + '/' + fileName;
+      var targetPath = '/challenges/' + req.params.challengeId + '/submissions' + req.params.submissionId + '/' + fileName;
       var file = {
-        filePath : targetPath,
+        fileUrl : targetPath,
         tempPath : '',
-        fileName : fileName,
         size : part.byteCount,
         storageType : options.id
       };

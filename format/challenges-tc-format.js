@@ -41,25 +41,35 @@ module.exports.Convert = function(ChallengeLCFormat) {
   var phaseStatus;
   var currentStatus;
   var currentPhaseEndDate;
+  var registrationOpen;
+  var submissionDisabled;
   switch(ChallengeLCFormat.status) {
     case 'SUBMISSION':
       phaseStatus = 'Submission';
       currentStatus = 'Active';
       currentPhaseEndDate = subEndDateInUTC;
+      registrationOpen = true;
+      submissionDisabled = false;
       break;
     case 'REVIEW':
-      phaseStatus = 'Submission';
+      phaseStatus = 'Review';
       currentStatus = 'Active';
       currentPhaseEndDate = subEndDateInUTC;
+      registrationOpen = false;
+      submissionDisabled = true;
       break;
     case 'COMPLETE':
       phaseStatus = 'Complete';
       currentStatus = 'Completed';
       currentPhaseEndDate = '';
+      registrationOpen = false;
+      submissionDisabled = true;
       break;
     default:
       phaseStatus = 'Draft';
       currentPhaseEndDate = subEndDateInUTC;
+      registrationOpen = false;
+      submissionDisabled = true;
       break;
   }
 
@@ -116,7 +126,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     });
 
     return {
-      handle: participant.userId, // @TODO this should be participant.user.name, but currently user return null from http://lc1-challenge-service.herokuapp.com/
+      handle: participant.userHandle,
       reliability: 'N/A',
       registrationDate: participant.createdAt,
       submissionDate: participantSubmission.submissionDate, // @TODO find if this user submitted and add a date
@@ -169,7 +179,6 @@ module.exports.Convert = function(ChallengeLCFormat) {
     prizes: ChallengeLCFormat.prizes,
     prize: ChallengeLCFormat.prizes,
     challengeCommunity: 'develop',
-    registrationOpen: 'Yes',
     phases: [{scheduledStartTime: ChallengeLCFormat.regStartAt}],
     event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15"},
     submissions: submissions
@@ -227,4 +236,17 @@ module.exports.convertResult = function(ChallengeLCFormat) {
     results: results
   };
 
+};
+
+module.exports.convertFiles = function(LCfiles) {
+  var files = _.map(LCfiles, function(file) {
+    return {
+      url: file.fileUrl,
+      documentName: file.title
+    }
+  });
+
+  return {
+    Documents: files
+  };
 };

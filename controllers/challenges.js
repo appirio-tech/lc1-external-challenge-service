@@ -11,6 +11,8 @@ var _ = require('lodash');
 var routeHelper = require('../lib/routeHelper');
 var ChallengeTCFormat = require('../format/challenges-tc-format');
 var Challenge = require('./challenge-consumer').Challenge;
+var fse = require('fs-extra');
+var multiparty = require('multiparty');
 
 var client = new Challenge(config.challengeApiUrl);
 
@@ -130,8 +132,9 @@ exports.register = function(req, res, next) {
   var params = {
     challengeId: req.params.challengeId,
     body: {
-      userId: 123,
-      role: 'submitter'
+      userId: req.user.tcUser.id,
+      userHandle: req.user.tcUser.handle,
+      role: 'SUBMITTER'
     }
   };
 
@@ -153,21 +156,78 @@ exports.register = function(req, res, next) {
  * Get documents for a challenge
  */
 exports.getDocuments = function(req, res, next) {
-  req.data = {
-    Documents: [{
-      url: 'http://google.com',
-      documentName: 'Hi Mom'
-    }]
+  var params = {
+    challengeId: req.params.challengeId
   };
-  next();
+
+  client.getChallengesByChallengeIdFiles(params)
+    .then(function(result) {
+      var files = result.body.content;
+      req.data = ChallengeTCFormat.convertFiles(files);
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
 };
 
 /**
- * Submit to a challenge
+ * Create the submission record
  */
-exports.submit = function(req, res, next) {
-  req.data = {
-    submissionId: 123
+exports.createSubmission = function(req, res, next) {
+  var params = {
+    challengeId: req.params.challengeId,
+    body: {
+      submitterId: req.user.tcUser.id,
+      submitterHandle: req.user.tcUser.handle,
+      status: 'VALID'
+    }
   };
-  next();
+
+  client.postChallengesByChallengeIdSubmissions(params)
+    .then(function (result) {
+      req.params.submissionId = result.body.id;
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
+};
+
+exports.createSubmissionFile = function(req, res, next) {
+
+  var fileEntity = req.fileUploadStatus.file;
+  if (fileEntity) {
+    // can save the fileEntity to database
+    var params = {
+      challengeId: req.params.challengeId,
+      submissionId: req.params.submissionId,
+      body: {
+        fileUrl: fileEntity.fileUrl,
+        title: 'Submission for '+ req.params.submissionId,
+        size: fileEntity.size,
+        storageLocation: fileEntity.storageType
+      }
+    };
+  } else {
+    routeHelper.addErrorMessage(req,'UploadError', 'Unexpected error. Try again after some time', req.fileUploadStatus.statusCode);
+  }
+
+  client.postChallengesByChallengeIdSubmissionsBySubmissionIdFiles(params)
+    .then(function(result) {
+      req.data = {submissionId: req.params.submissionId};
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
 };

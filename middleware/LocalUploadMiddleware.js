@@ -9,9 +9,8 @@
  *  * This method will set the request object property fileUploadStatus
  *  * fileUploadStatus : {
  *  *   file : {
- *  *      filePath : ''
+ *  *      fileUrl : ''
  *  *      tempPath : ''
- *  *      fileName : ''
  *  *      size : ''
  *  *      storageType : ''
  *  *   }
@@ -62,6 +61,7 @@ var checkOptions = function(options) {
   }
 };
 
+
 module.exports = function(options, config) {
   var err = checkOptions(options);
   if(err) {
@@ -87,12 +87,10 @@ module.exports = function(options, config) {
     form.on('file', function(name, receivedFile) {
       var tmpPath = receivedFile.path,
         fileName = receivedFile.originalFilename,
-        targetDirectory = uploadDirectory + '/' + 'challenges' + '/' + req.params.challengeId,
+        targetDirectory = uploadDirectory + '/challenges/' + req.params.challengeId + '/submissions/' + req.params.submissionId,
         targetPath = targetDirectory + '/' + fileName,
         file = {
-          filePath : targetPath,
-          tempPath : tmpPath,
-          fileName : fileName,
+          fileUrl : targetPath,
           size : receivedFile.size,
           // Unique id for this storage provider
           storageType : options.id
