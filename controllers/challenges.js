@@ -11,8 +11,6 @@ var _ = require('lodash');
 var routeHelper = require('../lib/routeHelper');
 var ChallengeTCFormat = require('../format/challenges-tc-format');
 var Challenge = require('./challenge-consumer').Challenge;
-var fse = require('fs-extra');
-var multiparty = require('multiparty');
 
 var client = new Challenge(config.challengeApiUrl);
 
@@ -135,7 +133,10 @@ exports.register = function(req, res, next) {
       userId: req.user.tcUser.id,
       userHandle: req.user.tcUser.handle,
       role: 'SUBMITTER'
-    }
+    },
+    headers: [{
+      Authorization: 'Bearer ' + req.headers.authorization
+    }]
   };
 
   client.postChallengesByChallengeIdParticipants(params)
@@ -184,7 +185,10 @@ exports.createSubmission = function(req, res, next) {
       submitterId: req.user.tcUser.id,
       submitterHandle: req.user.tcUser.handle,
       status: 'VALID'
-    }
+    },
+    headers: [{
+        Authorization: 'Bearer ' + req.headers.authorization
+    }]
   };
 
   client.postChallengesByChallengeIdSubmissions(params)
@@ -213,7 +217,10 @@ exports.createSubmissionFile = function(req, res, next) {
         title: 'Submission for '+ req.params.submissionId,
         size: fileEntity.size,
         storageLocation: fileEntity.storageType
-      }
+      },
+      headers: [{
+        Authorization: 'Bearer ' + req.headers.authorization
+      }]
     };
   } else {
     routeHelper.addErrorMessage(req,'UploadError', 'Unexpected error. Try again after some time', req.fileUploadStatus.statusCode);
