@@ -210,7 +210,11 @@ exports.createSubmission = function(req, res, next) {
 
 exports.createSubmissionFile = function(req, res, next) {
 
-  var fileEntity = req.fileUploadStatus.file;
+  var fileEntity;
+  if (req.fileUploadStatus && req.fileUploadStatus.file) {
+    fileEntity = req.fileUploadStatus.file
+  }
+
   if (fileEntity) {
     // can save the fileEntity to database
     var params = {
