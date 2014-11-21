@@ -43,7 +43,6 @@ module.exports.Convert = function(ChallengeLCFormat) {
   var currentPhaseEndDate;
   var registrationOpen;
   var submissionDisabled;
-  console.log(ChallengeLCFormat.id);
   switch(ChallengeLCFormat.status) {
     case 'SUBMISSION':
       phaseStatus = 'Submission';

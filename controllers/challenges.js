@@ -134,14 +134,16 @@ exports.register = function(req, res, next) {
       userHandle: req.user.tcUser.handle,
       role: 'SUBMITTER'
     },
-    headers: [{
-      Authorization: 'Bearer ' + req.headers.authorization
-    }]
+    headers: {
+      Authorization: req.headers.authorization
+    }
   };
 
   client.postChallengesByChallengeIdParticipants(params)
     .then(function (result) {
-      req.data = result.body;
+      req.data = {
+        message: "ok"
+      }
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
@@ -186,9 +188,9 @@ exports.createSubmission = function(req, res, next) {
       submitterHandle: req.user.tcUser.handle,
       status: 'VALID'
     },
-    headers: [{
-        Authorization: 'Bearer ' + req.headers.authorization
-    }]
+    headers: {
+      Authorization: req.headers.authorization
+    }
   };
 
   client.postChallengesByChallengeIdSubmissions(params)
@@ -218,9 +220,9 @@ exports.createSubmissionFile = function(req, res, next) {
         size: fileEntity.size,
         storageLocation: fileEntity.storageType
       },
-      headers: [{
-        Authorization: 'Bearer ' + req.headers.authorization
-      }]
+      headers: {
+        Authorization: req.headers.authorization
+      }
     };
   } else {
     routeHelper.addErrorMessage(req,'UploadError', 'Unexpected error. Try again after some time', req.fileUploadStatus.statusCode);
