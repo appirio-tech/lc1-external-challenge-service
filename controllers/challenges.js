@@ -141,9 +141,7 @@ exports.register = function(req, res, next) {
 
   client.postChallengesByChallengeIdParticipants(params)
     .then(function (result) {
-      req.data = {
-        message: "ok"
-      };
+      req.message = "ok";
       next();
     })
     .fail(function (err) {
