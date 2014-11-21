@@ -143,7 +143,8 @@ exports.register = function(req, res, next) {
     .then(function (result) {
       req.data = {
         message: "ok"
-      }
+      };
+      next();
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
