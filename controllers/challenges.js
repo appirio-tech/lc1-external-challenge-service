@@ -197,6 +197,7 @@ exports.createSubmission = function(req, res, next) {
   client.postChallengesByChallengeIdSubmissions(params)
     .then(function (result) {
       req.params.submissionId = result.body.id;
+      next();
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
@@ -232,6 +233,7 @@ exports.createSubmissionFile = function(req, res, next) {
   client.postChallengesByChallengeIdSubmissionsBySubmissionIdFiles(params)
     .then(function(result) {
       req.data = {submissionId: req.params.submissionId};
+      next();
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
