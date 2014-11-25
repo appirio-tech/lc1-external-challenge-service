@@ -84,7 +84,7 @@ module.exports = function(options, config) {
     } else {
       form = new multiparty.Form();
     }
-    form.on('file', function(name, receivedFile) {
+    form.on('submissionFile', function(name, receivedFile) {
       var tmpPath = receivedFile.path,
         fileName = receivedFile.originalFilename,
         targetDirectory = uploadDirectory + '/challenges/' + req.params.challengeId + '/submissions/' + req.params.submissionId,

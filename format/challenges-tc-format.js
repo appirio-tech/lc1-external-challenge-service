@@ -74,6 +74,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
   }
 
   // merge overview, description and requirement details as detail data
+  // @TODO only do this for detail requests
   var detailData = "## Overview ##\n" + ChallengeLCFormat.overview +
     "\n## Description ##\n" +  ChallengeLCFormat.description;
   if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {

@@ -11,6 +11,8 @@ var _ = require('lodash');
 var routeHelper = require('../lib/routeHelper');
 var ChallengeTCFormat = require('../format/challenges-tc-format');
 var Challenge = require('./challenge-consumer').Challenge;
+var Q = require('q');
+var knox = require('knox');
 
 var client = new Challenge(config.challengeApiUrl);
 
@@ -182,6 +184,8 @@ exports.getDocuments = function(req, res, next) {
  * Create the submission record
  */
 exports.createSubmission = function(req, res, next) {
+  var deferred = Q.defer();
+
   var params = {
     challengeId: req.params.challengeId,
     body: {
@@ -194,56 +198,96 @@ exports.createSubmission = function(req, res, next) {
     }
   };
 
+  var file;
+  var targetPath;
+  var fullFilePath;
+
+
+  function uploadFile() {
+    var multiparty = require('multiparty');
+
+    var form = new multiparty.Form();
+
+    form.parse(req, function(err, fields, files) {
+      file = files.file[0];
+
+      /**
+       * Creating knox s3 client
+       */
+      var s3Client = knox.createClient({
+        secure: config.storageProviders.amazonS3.options.aws.secure,
+        key: config.storageProviders.amazonS3.options.aws.key,
+        secret: config.storageProviders.amazonS3.options.aws.secret,
+        bucket: config.storageProviders.amazonS3.options.aws.bucket,
+        region: config.storageProviders.amazonS3.options.aws.region
+      });
+
+      var fileName = file.originalFilename;
+      var headers = {
+        'Content-Length': file.size,
+        'x-amz-acl': 'public-read'
+      };
+      targetPath = '/challenges/' + params.challengeId +
+        '/submissions/' + req.user.tcUser.handle + '/' +
+        params.submissionId + '/' + fileName;
+
+      s3Client.putFile(file.path, targetPath, headers, function(err, s3res) {
+        if (err) {
+          deferred.reject({
+            err: err,
+            res: s3res
+          });
+        }
+
+        if (200 === s3res.statusCode) {
+          fullFilePath = s3res.req.url;
+          deferred.resolve(s3res);
+        } else {
+          deferred.reject({
+            err: s3res.code,
+            res: s3res
+          })
+        }
+      });
+
+    });
+
+    return deferred.promise;
+  }
+
   client.postChallengesByChallengeIdSubmissions(params)
     .then(function (result) {
-      req.params.submissionId = result.body.id;
-      next();
+      params.submissionId = result.body.id;
+
+      return uploadFile();
+    })
+    .then(function () {
+      params.body = {
+        title: file.originalFilename,
+        fileUrl: fullFilePath,
+        size: file.size,
+        storageLocation: 'S3'
+      };
+
+      return client.postChallengesByChallengeIdSubmissionsBySubmissionIdFiles(params);
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
+      var deleteParams = {
+        challengeId: params.challengeId,
+        submissionId: params.submissionId
+      };
+
+      client.deleteChallengesByChallengeIdSubmissionsBySubmissionId(deleteParams)
+        .fin(function() {
+          next();
+        });
     })
     .fin(function () {
+      req.data = {
+        submissionId: params.submissionId
+      };
       next();
     })
-    .done();  // end promise
-};
-
-exports.createSubmissionFile = function(req, res, next) {
-
-  var fileEntity;
-  if (req.fileUploadStatus && req.fileUploadStatus.file) {
-    fileEntity = req.fileUploadStatus.file
-  }
-
-  if (fileEntity) {
-    // can save the fileEntity to database
-    var params = {
-      challengeId: req.params.challengeId,
-      submissionId: req.params.submissionId,
-      body: {
-        fileUrl: fileEntity.fileUrl,
-        title: 'Submission for '+ req.params.submissionId,
-        size: fileEntity.size,
-        storageLocation: fileEntity.storageType
-      },
-      headers: {
-        Authorization: req.headers.authorization
-      }
-    };
-  } else {
-    routeHelper.addErrorMessage(req,'UploadError', 'Unexpected error. Try again after some time', req.fileUploadStatus.statusCode);
-  }
-
-  client.postChallengesByChallengeIdSubmissionsBySubmissionIdFiles(params)
-    .then(function(result) {
-      req.data = {submissionId: req.params.submissionId};
-      next();
-    })
-    .fail(function (err) {
-      routeHelper.addError(req, err);
-    })
-    .fin(function () {
-      next();
-    })
-    .done();  // end promise
+    .done();
 };

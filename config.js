@@ -92,7 +92,7 @@ module.exports = {
          * @type {Object}
          */
         aws: {
-          secure: false,
+          secure: true,
           key: process.env.AWS_KEY || 'foo',
           secret: process.env.AWS_SECRET || 'bar',
           bucket: process.env.AWS_BUCKET || 'bucket',

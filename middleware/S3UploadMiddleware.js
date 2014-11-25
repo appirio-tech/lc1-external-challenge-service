@@ -5,18 +5,17 @@
  * A storage provider should implement atleast following two methods
  *
  * /**
- *  * Store method. It will store the file based on the service provided by this provided
- *  * This method will set the request object property fileUploadStatus
- *  * fileUploadStatus : {
- *  *   file : {
- *  *      fileUrl : ''
- *  *      tempPath : ''
- *  *      size : ''
- *  *      storageType : ''
- *  *   }
- *  *   err : Describes the error in case there is one
- *  *   statusCode : remote server status code
+ *  * handleUpload method. It will store the file based on the service provided by this provided
+ *  * This method will set the request body property
+ *  * body : {
+ *  *   id: // by default challenge id
+ *  *   filePath : ''
+ *  *   tempPath : ''
+ *  *   fileName : ''
+ *  *   size : ''
+ *  *   storageType : ''
  *  * }
+ *  * If error occurred. req.error will be set to error object
  *  *
  * function store(req,res,next) {
  *   // do something store the file and set the request object
@@ -49,6 +48,7 @@
  * Module dependencies
  */
 var multiparty = require('multiparty'),
+  routeHelper = require('../lib/routeHelper'),
   knox = require('knox'),
   Batch = require('batch'),
   /**
@@ -97,7 +97,7 @@ module.exports = function(options, config) {
   var provider = {};
 
   /**
-   * Storage provider store implementation
+   * Handles file upload
    * @param  {Object}       req       Request object
    * @param  {Object}       res       Response object
    * @param  {Function}     next      Next function
@@ -105,62 +105,71 @@ module.exports = function(options, config) {
   provider.store = function(req, res, next) {
     var form = new multiparty.Form(),
       batch = new Batch();
-    /**
-     * Parsing multi part form field user_id
-     * This middleware assumes that user_id will be passed as form field, the last field should be file
-     * @param  {Function}   cb      callback function
-     */
-    batch.push(function(cb) {
-      form.on('field', function(name, value) {
-        req.body = req.body || {};
-        req.body[name] = value;
-        cb(null, '');
-      });
-    });
-    batch.push(function(cb) {
-      form.on('part', function(part) {
-        if (!part.filename) {
-          return;
-        }
-        cb(null, part);
-      });
-    });
 
-    var fileUploadStatus= {};
+    var fileUplaodStatus = {};
 
-    batch.end(function(err, results) {
-      if(err) {
-        fileUploadStatus.error = err;
-      }
-      form.removeListener('close', onEnd);
-      var part = results[1];
-      var fileName = part.filename;
-      headers['Content-Length'] = part.byteCount;
-      var targetPath = '/challenges/' + req.params.challengeId + '/submissions' + req.params.submissionId + '/' + fileName;
-      var file = {
+    var uploadFile = function(file) {
+      console.log('upload');
+      var fileName = file.originalFilename;
+      headers['Content-Length'] = file.byteCount;
+      var targetPath = '/challenges' + '/' + req.params.challengeId + '/' + fileName;
+
+      var fileData = {
+        // filePath : targetPath,
+        //fileName : fileName,
         fileUrl : targetPath,
-        tempPath : '',
-        size : part.byteCount,
-        storageType : options.id
+        size : file.byteCount,
+        // storageLocation configured in config. same as name of storage provider
+        // challenge service is using storageLocation so chaned storageType to storage location
+        storageLocation : config.uploads.storageProvider
       };
 
-      s3Client.putStream(part, targetPath, headers, function(err, s3Response) {
+      fileUplaodStatus.file = fileData;
+      s3Client.put(file, targetPath, headers, function(err, s3Response) {
         if (err) {
-          fileUploadStatus.err = err;
-          fileUploadStatus.statusCode = s3Response.statusCode;
+          routeHelper.addError(req, err, s3Response.statusCode);
+          fileUplaodStatus.err = err;
         } else {
           console.log('s3 response code' + s3Response.statusCode);
           if(s3Response.statusCode === HTTP_OK) {
-            fileUploadStatus.file = file;
           } else {
             // S3 response code is not HTTP OK error occured during upload
-            fileUploadStatus.err = new Error('Upload failed');
-            fileUploadStatus.statusCode = s3Response.statusCode;
+            routeHelper.addError(req, new Error('upload failed'), s3Response.statusCode);
+            fileUplaodStatus.err = err;
           }
         }
-        req.fileUploadStatus = fileUploadStatus;
+        req.fileUplaodStatus = fileUplaodStatus;
         next();
       });
+    };
+
+    batch.push(function(cb) {
+      // add field parameters
+      form.on('field', function(name, value) {
+        file[name] = value;
+        cb(null, '');
+      });
+    });
+
+
+    batch.push(function(cb) {
+      form.on('file', function(name, file) {
+        console.log('submissionFile');
+        uploadFile(file);
+
+        cb(null, '');
+      })
+    });
+
+    batch.end(function(err, results) {
+      console.log('end');
+      if(err) {
+        routeHelper.addError(req, err);
+        return next();
+      }
+      form.removeListener('close', onEnd);
+      var part = results[1];
+      uploadFile(part);
     });
     form.on('close', onEnd);
     form.parse(req);

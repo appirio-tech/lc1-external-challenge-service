@@ -105,15 +105,8 @@ app.route('/challenges/:challengeId/register')
 app.route('/challenges/:challengeId/documents')
   .get(challenges.getDocuments, routeHelper.renderJson);
 
-/**
- * This will throw an error if providerName is not configured in storage providers configuration.
- */
-var provider = storageProviderFactory.getProvider(config.uploads.storageProvider);
-
 app.route('/develop/challenges/:challengeId/upload')
-  .post(challenges.createSubmission)
-  .post(provider.store)
-  .post(challenges.createSubmissionFile, routeHelper.renderJson);
+  .post(challenges.createSubmission, routeHelper.renderJson);
 
 /**
  * Start listening to a specific port 12345.
