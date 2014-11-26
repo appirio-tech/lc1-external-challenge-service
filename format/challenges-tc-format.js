@@ -85,56 +85,58 @@ module.exports.Convert = function(ChallengeLCFormat) {
   }
   var detailDataHtml = converter.makeHtml(detailData);
 
-  var submissions =_.map(ChallengeLCFormat.scorecards, function(scorecard) {
+  var submissions =_.map(ChallengeLCFormat.submissions, function(submission) {
     var submissionStatus;
-    if (scorecard.submission) {
-      switch(scorecard.submission.status) {
-        case 'VALID':
-          submissionStatus = 'Active';
-          break;
-        case 'INVALID':
-          submissionStatus = 'Failed Review';
-          break;
-        case 'LATE':
-          submissionStatus = 'Failed Late';
-          break;
-        default:
-          submissionStatus = 'Active';
-          break;
-      }
-
-      return {
-        lcScorecardId: scorecard.id,
-        lcSubmissionId: scorecard.submission.id,
-        lcSubmitterId: scorecard.submission.submitterId,
-        handle: scorecard.submission.submitter_handle,
-        placement: scorecard.place,
-        screeningScore: 0,
-        initialScore: 0,
-        finalScore: scorecard.scoreSum,
-        points: 0,
-        submissionStatus: submissionStatus,
-        submissionDate: new Date(scorecard.submission.createdAt).toISOString()
-      }
+    switch(submission.status) {
+      case 'VALID':
+        submissionStatus = 'Active';
+        break;
+      case 'INVALID':
+        submissionStatus = 'Failed Review';
+        break;
+      case 'LATE':
+        submissionStatus = 'Failed Late';
+        break;
+      default:
+        submissionStatus = 'Active';
+        break;
     }
 
-    return false;
+    var returnValue = {
+      lcSubmissionId: submission.id,
+      lcSubmitterId: submission.submitterId,
+      handle: submission.submitterHandle,
+      screeningScore: 0,
+      initialScore: 0,
+      submissionStatus: submissionStatus,
+      points: 0,
+      submissionDate: new Date(submission.createdAt).toISOString()
+    };
+
+    var scorecard = _.find(ChallengeLCFormat.scorecards, {submissionId: submission.id});
+
+    if (scorecard) {
+      returnValue.lcScorecardId = scorecard.id;
+      returnValue.placement = scorecard.place;
+      returnValue.finalScore = scorecard.scoreSum;
+    }
+
+    return returnValue;
   });
 
   var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
-    var participantSubmission = {submissionDate: ''};
 
-    _.forEach(submissions, function(submission) {
-      if (submission.lcSubmitterId == participant.userId) {
-        participantSubmission = submission;
-      }
-    });
+    var participantSubmission = _.findLast(submissions, {lcSubmitterId: participant.userId});
+
+    if (typeof participantSubmission === 'undefined') {
+      participantSubmission = { submissionDate: '', lcSubmissionId: 0};
+    }
 
     return {
       handle: participant.userHandle,
       reliability: 'N/A',
       registrationDate: participant.createdAt,
-      submissionDate: participantSubmission.submissionDate, // @TODO find if this user submitted and add a date
+      submissionDate: participantSubmission.submissionDate,
       rating: 'N/A',
       colorStyle: 'color: #000000',
       lcSubmissionId: participantSubmission.lcSubmissionId
