@@ -139,7 +139,8 @@ module.exports.Convert = function(ChallengeLCFormat) {
       submissionDate: participantSubmission.submissionDate,
       rating: 'N/A',
       colorStyle: 'color: #000000',
-      lcSubmissionId: participantSubmission.lcSubmissionId
+      lcSubmissionId: participantSubmission.lcSubmissionId,
+      lcScorecardId: participantSubmission.lcScorecardId
     };
   });
 
