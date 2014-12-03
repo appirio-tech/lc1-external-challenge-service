@@ -12,6 +12,7 @@ var routeHelper = require('../lib/routeHelper');
 var ChallengeTCFormat = require('../format/challenges-tc-format');
 var Challenge = require('./challenge-consumer').Challenge;
 var Q = require('q');
+var request = require('request');
 var knox = require('knox');
 
 var client = new Challenge(config.challengeApiUrl);
@@ -125,36 +126,115 @@ exports.getCheckpoints = function(req, res) {
   });
 };
 
+function checkTerms(req) {
+  // Check terms API
+  var deferred = Q.defer();
+
+  var queryParams = {
+    role: 'Submitter'
+  };
+
+  var headers = {
+    Authorization: req.headers.authorization
+  };
+
+  request({
+    method: 'GET',
+    uri: config.tcApi + '/terms/' + config.tcTermChallengeId,
+    qs: queryParams,
+    headers: headers
+  }, function(error, response, body) {
+    if (error) {
+      deferred.reject(error);
+    } else {
+      if (/^application\/(.*\\+)?json/.test(response.headers['content-type'])) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+
+        }
+      }
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        deferred.resolve({
+          response: response,
+          body: body
+        });
+      } else {
+        deferred.reject({
+          response: response,
+          body: body
+        });
+      }
+    }
+  });
+
+  return deferred.promise;
+}
+
 /**
  * register to a challenge
  */
 exports.register = function(req, res, next) {
-  var params = {
-    challengeId: req.params.challengeId,
-    body: {
-      userId: req.user.tcUser.id,
-      userHandle: req.user.tcUser.handle,
-      role: 'SUBMITTER'
-    },
-    headers: {
-      Authorization: req.headers.authorization
-    }
-  };
 
-  client.postChallengesByChallengeIdParticipants(params)
-    .then(function (result) {
-      req.data = {
-        message: "ok"
-      };
-      next();
-    })
-    .fail(function (err) {
-      routeHelper.addError(req, err);
-    })
-    .fin(function () {
-      next();
-    })
-    .done();  // end promise
+ checkTerms(req)
+   .then(function(result) {
+
+     var allPassed = true;
+     /*_.forEach(result.terms, function(terms) {
+        if (!terms.agreed) {
+          allPassed = false;
+        }
+     });*/
+
+     var term = _.find(result.body.terms, {termsOfUseId: parseInt(config.tcTermId) });
+
+     if (term) {
+       allPassed = term.agreed;
+     }
+
+     if (allPassed) {
+
+       var params = {
+         challengeId: req.params.challengeId,
+         body: {
+           userId: req.user.tcUser.id,
+           userHandle: req.user.tcUser.handle,
+           role: 'SUBMITTER'
+         },
+         headers: {
+           Authorization: req.headers.authorization
+         }
+       };
+
+       client.postChallengesByChallengeIdParticipants(params)
+         .then(function (result) {
+           req.data = {
+             message: "ok"
+           };
+           next();
+         })
+         .fail(function (err) {
+           routeHelper.addError(req, err);
+         })
+         .fin(function () {
+           next();
+         })
+         .done();  // end promise
+     } else {
+       req.data = {
+         error: {
+           details: 'You should agree with all terms of use.'
+         }
+       }
+     }
+   })
+   .fail(function(err) {
+     routeHelper.addError(req, err);
+   })
+   .fin(function() {
+     next();
+   })
+   .done();
 
 };
 
@@ -290,4 +370,57 @@ exports.createSubmission = function(req, res, next) {
       next();
     })
     .done();
+};
+
+/**
+ * Get list of terms
+ */
+exports.getChallengeTerms = function(req, res, next) {
+
+  var params = {
+    role: 'Submitter'
+  };
+
+  var headers = {
+    Authorization: req.headers.authorization
+  };
+
+  request({
+    method: 'GET',
+    uri: config.tcApi + '/terms/' + config.tcTermChallengeId,
+    qs: params,
+    headers: headers
+  }, function(error, response, body) {
+    if (error) {
+      req.data = {
+        error: {
+          details: "Error loading terms"
+        }
+      };
+
+      next();
+    } else {
+      if (/^application\/(.*\\+)?json/.test(response.headers['content-type'])) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+
+        }
+      }
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        req.data = {
+          terms: body.terms
+        };
+      } else {
+        req.data = {
+          error: {
+            details: "Error loading terms"
+          }
+        };
+      }
+
+      next();
+    }
+
+  });
 };

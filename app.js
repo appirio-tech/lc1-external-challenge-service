@@ -108,6 +108,9 @@ app.route('/challenges/:challengeId/documents')
 app.route('/develop/challenges/:challengeId/upload')
   .post(challenges.createSubmission, routeHelper.renderJson);
 
+app.route('/terms/:challengeId')
+  .get(challenges.getChallengeTerms, routeHelper.renderJson);
+
 /**
  * Start listening to a specific port 12345.
  * You can change the port in the config file.

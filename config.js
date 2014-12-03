@@ -31,6 +31,12 @@ module.exports = {
   tcApi: process.env.TC_API_URL || 'https://api.topcoder.com/v2',
 
   /**
+   * challenge and term ids
+   */
+  tcTermChallengeId: process.env.TC_TERM_CHALLENGE_ID || 0,
+  tcTermId: process.env.TC_TERM_ID || 0,
+
+  /**
    * URL of lc1-challenge-service where Swagger client sends requests.
    */
   // challengeApiUrl: 'http://localhost:10010',   // for local challenge service
