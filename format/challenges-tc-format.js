@@ -258,7 +258,7 @@ module.exports.convertFiles = function(LCfiles) {
   var files = _.map(LCfiles, function(file) {
     return {
       url: file.fileUrl,
-      documentName: file.title
+      documentName: file.title ? file.title : file.fileUrl.split(/(\\|\/)/g).pop()
     }
   });
 
