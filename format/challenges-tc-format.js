@@ -79,9 +79,11 @@ module.exports.Convert = function(ChallengeLCFormat) {
     "\n## Description ##\n" +  ChallengeLCFormat.description;
   if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {
     detailData += "\n## Requirements ##";
-    for(var i = 1; i < ChallengeLCFormat.requirements.length; i++){
-      detailData += "\n" + i + ". " + ChallengeLCFormat.requirements[i].requirementText;
-    }
+    var requirementDetail = _.reduce(ChallengeLCFormat.requirements, function(text, item) {
+      return text + "\n 1. " + item.requirementText;
+    }, '');
+
+    detailData += requirementDetail;
   }
   var detailDataHtml = converter.makeHtml(detailData);
 
