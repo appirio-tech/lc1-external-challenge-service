@@ -36,7 +36,11 @@ module.exports.Convert = function(ChallengeLCFormat) {
   var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toISOString();
   var nowInUTC = (new Date()).toUTCString();
   var differenceEndAndNow = new Date(subEndDateInUTC)-new Date(nowInUTC);
-  if (differenceEndAndNow < 0) differenceEndAndNow = 0;
+  if (differenceEndAndNow < 0) {
+    differenceEndAndNow = 0;
+  } else {
+    differenceEndAndNow = Math.floor(differenceEndAndNow / 1000)
+  }
 
   var phaseStatus;
   var currentStatus;
@@ -79,11 +83,9 @@ module.exports.Convert = function(ChallengeLCFormat) {
     "\n## Description ##\n" +  ChallengeLCFormat.description;
   if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {
     detailData += "\n## Requirements ##";
-    var requirementDetail = _.reduce(ChallengeLCFormat.requirements, function(text, item) {
+    detailData += _.reduce(ChallengeLCFormat.requirements, function (text, item) {
       return text + "\n 1. " + item.requirementText;
     }, '');
-
-    detailData += requirementDetail;
   }
   var detailDataHtml = converter.makeHtml(detailData);
 
