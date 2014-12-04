@@ -32,7 +32,6 @@ var converter = new Showdown.converter();
  */
 
 module.exports.Convert = function(ChallengeLCFormat) {
-  var regStartDateInUTC = new Date(ChallengeLCFormat.regStartAt).toISOString();
   var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toISOString();
   var nowInUTC = (new Date()).toUTCString();
   var differenceEndAndNow = new Date(subEndDateInUTC)-new Date(nowInUTC);
@@ -174,7 +173,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     registrants: challengeRegistrants,
     postingDate: new Date(ChallengeLCFormat.regStartAt).toISOString(),
     registrationEndDate: ChallengeLCFormat.subEndAt,
-    checkpointSubmissionEndDate: ChallengeLCFormat.subEndAt,
+    checkpointSubmissionEndDate: null,
     submissionEndDate: ChallengeLCFormat.subEndAt,
     type: "develop",
     forumLink: "#lc-discussion",
