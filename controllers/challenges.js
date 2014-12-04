@@ -211,7 +211,6 @@ exports.register = function(req, res, next) {
            req.data = {
              message: "ok"
            };
-           next();
          })
          .fail(function (err) {
            routeHelper.addError(req, err);
@@ -230,8 +229,6 @@ exports.register = function(req, res, next) {
    })
    .fail(function(err) {
      routeHelper.addError(req, err);
-   })
-   .fin(function() {
      next();
    })
    .done();
