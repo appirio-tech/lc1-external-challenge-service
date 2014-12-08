@@ -212,6 +212,7 @@ exports.register = function(req, res, next) {
            };
          })
          .fail(function (err) {
+           console.log(err);
            routeHelper.addError(req, err);
          })
          .fin(function () {
@@ -227,6 +228,7 @@ exports.register = function(req, res, next) {
      }
    })
    .fail(function(err) {
+     console.log(err);
      routeHelper.addError(req, err);
      next();
    })
