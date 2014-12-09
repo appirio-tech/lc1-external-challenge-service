@@ -224,7 +224,8 @@ exports.register = function(req, res, next) {
          error: {
            details: 'You should agree with all terms of use.'
          }
-       }
+       };
+       next();
      }
    })
    .fail(function(err) {
