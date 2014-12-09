@@ -299,7 +299,7 @@ exports.createSubmission = function(req, res, next) {
     .then(function(result) {
       params.fileId = result.body.id;
       delete params.body;
-      return client.getLink(params, 'upload');
+      return client.getSubmissionLink(params, 'upload');
     })
     .then(function(result) {
       req.data = {
@@ -373,4 +373,23 @@ exports.getChallengeTerms = function(req, res, next) {
     }
 
   });
+};
+
+exports.getDownloadUrl = function(req, res, next) {
+  var params = {
+    challengeId: req.params.challengeId,
+    fileId: req.params.fileId
+  };
+
+  client.getChallengesByChallengeIdFiles(params)
+    .then(function(result) {
+      req.data = result.body;
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
 };

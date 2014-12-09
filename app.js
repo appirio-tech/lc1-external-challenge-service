@@ -114,6 +114,9 @@ app.route('/develop/challenges/:challengeId/upload')
 app.route('/terms/:challengeId')
   .get(challenges.getChallengeTerms, routeHelper.renderJson);
 
+app.route('challenges/:challengeId/files/:fileId/download')
+  .get(challenges.getDownloadUrl, routeHelper.renderJson);
+
 /**
  * Start listening to a specific port 12345.
  * You can change the port in the config file.

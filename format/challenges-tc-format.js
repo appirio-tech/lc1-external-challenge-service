@@ -257,6 +257,7 @@ module.exports.convertResult = function(ChallengeLCFormat) {
 module.exports.convertFiles = function(LCfiles) {
   var files = _.map(LCfiles, function(file) {
     return {
+      id: file.id,
       url: file.fileUrl,
       documentName: file.title ? file.title : file.fileUrl.split(/(\\|\/)/g).pop()
     }
