@@ -115,7 +115,10 @@ app.route('/terms/:challengeId')
   .get(challenges.getChallengeTerms, routeHelper.renderJson);
 
 app.route('challenges/:challengeId/files/:fileId/download')
-  .get(challenges.getDownloadUrl, routeHelper.renderJson);
+  .get(challenges.getChallengeFileUrl, routeHelper.renderJson);
+
+app.route('challenges/:challengeId/submissions/:submissionId/files/:fileId/download')
+  .get(challenges.getSubmissionFileUrl, routeHelper.renderJson);
 
 /**
  * Start listening to a specific port 12345.

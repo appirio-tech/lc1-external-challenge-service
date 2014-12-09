@@ -375,13 +375,33 @@ exports.getChallengeTerms = function(req, res, next) {
   });
 };
 
-exports.getDownloadUrl = function(req, res, next) {
+exports.getChallengeFileUrl = function(req, res, next) {
   var params = {
     challengeId: req.params.challengeId,
     fileId: req.params.fileId
   };
 
-  client.getChallengesByChallengeIdFiles(params)
+  client.getChallengeLink(params, 'download')
+    .then(function(result) {
+      req.data = result.body;
+    })
+    .fail(function (err) {
+      routeHelper.addError(req, err);
+    })
+    .fin(function () {
+      next();
+    })
+    .done();  // end promise
+};
+
+exports.getSubmissionFileUrl = function(req, res, next) {
+  var params = {
+    challengeId: req.params.challengeId,
+    fileId: req.params.fileId,
+    submissionId: req.params.submissionId
+  };
+
+  client.getSubmissionLink(params, 'download')
     .then(function(result) {
       req.data = result.body;
     })
