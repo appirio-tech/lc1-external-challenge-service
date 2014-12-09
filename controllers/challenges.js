@@ -284,7 +284,7 @@ exports.createSubmission = function(req, res, next) {
     .then(function (submissionId) {
       params.body = {
         title: fileName,
-        fileUrl: '/challenges/' + params.challengeId +
+        fileUrl: 'challenges/' + params.challengeId +
         '/submissions/' + req.user.tcUser.handle + '/' +
         submissionId + '/' + fileName,
         size: req.param('fileSize'),
