@@ -3261,6 +3261,13 @@ module.exports.Challenge = function(domain) {
             return deferred.promise;
         }
 
+        path = path.replace('{fileId}', parameters['fileId']);
+
+        if (parameters['fileId'] === undefined) {
+            deferred.reject(new Error('Missing required  parameter: fileId'));
+            return deferred.promise;
+        }
+
         if (parameters.$queryParameters) {
             Object.keys(parameters.$queryParameters)
               .forEach(function(parameterName) {

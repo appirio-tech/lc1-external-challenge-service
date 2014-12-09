@@ -275,7 +275,7 @@ exports.createSubmission = function(req, res, next) {
     }
   };
 
-  var fileName = req.params.fileName;
+  var fileName = req.param('fileName');
 
   client.postChallengesByChallengeIdSubmissions(params)
     .then(function (result) {
@@ -287,7 +287,7 @@ exports.createSubmission = function(req, res, next) {
         fileUrl: '/challenges/' + params.challengeId +
         '/submissions/' + req.user.tcUser.handle + '/' +
         submissionId + '/' + fileName,
-        size: req.params.fileSize,
+        size: req.param('fileSize'),
         storageLocation: 'S3'
       };
 
@@ -301,7 +301,10 @@ exports.createSubmission = function(req, res, next) {
       return client.getLink(params, 'upload');
     })
     .then(function(result) {
-      return result.body.url;
+      req.data = {
+        submissionId: params.submissionId,
+        url: result.body.content.url
+      };
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
@@ -312,11 +315,7 @@ exports.createSubmission = function(req, res, next) {
 
       return client.deleteChallengesByChallengeIdSubmissionsBySubmissionId(deleteParams);
     })
-    .fin(function (url) {
-      req.data = {
-        submissionId: params.submissionId,
-        url: url
-      };
+    .fin(function () {
       next();
     })
     .done();

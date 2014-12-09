@@ -20,6 +20,7 @@ var challenges = require('./controllers/challenges');
 var storageProviderFactory = require('./lib/storageProviderFactory');
 var cors = require('cors');
 var request = require('request');
+var bodyParser = require('body-parser')
 
 /**
  * Initialize ExpressJS.
@@ -29,6 +30,8 @@ var app = express();
 // Add cors support
 app.use(cors());
 app.options('*', cors());
+
+app.use(bodyParser.json());
 
 // Add auth
 
