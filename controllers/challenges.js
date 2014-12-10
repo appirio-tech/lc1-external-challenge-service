@@ -13,6 +13,7 @@ var ChallengeTCFormat = require('../format/challenges-tc-format');
 var Challenge = require('./challenge-consumer').Challenge;
 var Q = require('q');
 var request = require('request');
+var knox = require('knox');
 
 var client = new Challenge(config.challengeApiUrl);
 
@@ -263,6 +264,7 @@ exports.getDocuments = function(req, res, next) {
  * Create the submission record
  */
 exports.createSubmission = function(req, res, next) {
+  var deferred = Q.defer();
 
   var params = {
     challengeId: req.params.challengeId,
@@ -276,36 +278,77 @@ exports.createSubmission = function(req, res, next) {
     }
   };
 
-  var fileName = req.param('fileName');
+  var file;
+  var targetPath;
+  var fullFilePath;
+
+
+  function uploadFile() {
+    var multiparty = require('multiparty');
+
+    var form = new multiparty.Form();
+
+    form.parse(req, function(err, fields, files) {
+      file = files.file[0];
+
+      /**
+       * Creating knox s3 client
+       */
+      var s3Client = knox.createClient({
+        secure: config.storageProviders.amazonS3.options.aws.secure,
+        key: config.storageProviders.amazonS3.options.aws.key,
+        secret: config.storageProviders.amazonS3.options.aws.secret,
+        bucket: config.storageProviders.amazonS3.options.aws.bucket,
+        region: config.storageProviders.amazonS3.options.aws.region
+      });
+
+      var fileName = file.originalFilename;
+      var headers = {
+        'Content-Length': file.size
+      };
+      targetPath = 'challenges/' + params.challengeId +
+        '/submissions/' + req.user.tcUser.handle + '/' +
+        params.submissionId + '/' + fileName;
+
+      s3Client.putFile(file.path, targetPath, headers, function(err, s3res) {
+        if (err) {
+          deferred.reject({
+            err: err,
+            res: s3res
+          });
+        }
+
+        if (200 === s3res.statusCode) {
+          fullFilePath = s3res.req.url;
+          deferred.resolve(s3res);
+        } else {
+          deferred.reject({
+            err: s3res.code,
+            res: s3res
+          })
+        }
+      });
+
+    });
+
+    return deferred.promise;
+  }
 
   client.postChallengesByChallengeIdSubmissions(params)
     .then(function (result) {
-      return result.body.id;
+      params.submissionId = result.body.id;
+
+      return uploadFile();
     })
-    .then(function (submissionId) {
+    .then(function () {
       params.body = {
-        title: fileName,
-        fileUrl: 'challenges/' + params.challengeId +
-        '/submissions/' + req.user.tcUser.handle + '/' +
-        submissionId + '/' + fileName,
-        size: req.param('fileSize'),
+        title: file.originalFilename,
+        fileUrl: fullFilePath,
+        size: file.size,
         storageLocation: 'S3'
       };
 
-      params.submissionId = submissionId;
-
       return client.postChallengesByChallengeIdSubmissionsBySubmissionIdFiles(params);
-    })
-    .then(function(result) {
-      params.fileId = result.body.id;
-      delete params.body;
-      return client.getSubmissionLink(params, 'upload');
-    })
-    .then(function(result) {
-      req.data = {
-        submissionId: params.submissionId,
-        url: result.body.content.url
-      };
     })
     .fail(function (err) {
       routeHelper.addError(req, err);
@@ -314,9 +357,15 @@ exports.createSubmission = function(req, res, next) {
         submissionId: params.submissionId
       };
 
-      return client.deleteChallengesByChallengeIdSubmissionsBySubmissionId(deleteParams);
+      client.deleteChallengesByChallengeIdSubmissionsBySubmissionId(deleteParams)
+        .fin(function() {
+          next();
+        });
     })
     .fin(function () {
+      req.data = {
+        submissionId: params.submissionId
+      };
       next();
     })
     .done();
