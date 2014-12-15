@@ -40,7 +40,7 @@ module.exports = {
    * URL of lc1-challenge-service where Swagger client sends requests.
    */
   // challengeApiUrl: 'http://localhost:10010',   // for local challenge service
-  challengeApiUrl: process.env.CHALLENGE_LC_URL || 'http://lc1-challenge-service.herokuapp.com',
+  challengeApiUrl: process.env.CHALLENGE_LC_URL || 'http://dev-lc1-challenge-service.herokuapp.com',
   /**
    * URL Prefix that is used for Challenge URL sent to the client
    * Please refer to below link for more information

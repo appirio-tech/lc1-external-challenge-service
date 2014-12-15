@@ -147,6 +147,11 @@ module.exports.Convert = function(ChallengeLCFormat) {
     };
   });
 
+  var finalSubmissionGuidelines = "<p>You will submit the following files.  Please see help.topcoder.com for more information on these files.</p>";
+  finalSubmissionGuidelines += '<ul><li>Technology Architecture Diagram</li>';
+  finalSubmissionGuidelines += '<li>POCDeployment Script</li>';
+  finalSubmissionGuidelines += '<li>Domain Logic Diagram</li>';
+  finalSubmissionGuidelines += '<li>Approach Doc / Readme</li>';
 
   return {
     source: 'serenity',
@@ -158,7 +163,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     projectId: null,
     forumId: null,
     detailedRequirements: detailDataHtml,
-    finalSubmissionGuidelines: "Please check the requirements in the challenge overview",
+    finalSubmissionGuidelines: finalSubmissionGuidelines,
     screeningScorecardId: null,
     reviewScorecardId: null,
     cmcTaskId: "",
