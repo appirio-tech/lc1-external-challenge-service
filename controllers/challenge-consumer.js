@@ -3320,7 +3320,7 @@ module.exports.Challenge = function(domain) {
         }
         var deferred = Q.defer();
 
-        var path = '/challenges/{challengeId}/{fileId}/' + method;
+        var path = '/challenges/{challengeId}/files/{fileId}/' + method;
 
         var body;
         var queryParameters = {};
