@@ -170,7 +170,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     numberOfCheckpointsPrizes: 0,
     topCheckPointPrize: "",
     platforms: ChallengeLCFormat.tags,
-    technologies: ChallengeLCFormat.tags,
+    technology: ChallengeLCFormat.tags,
     numSubmissions: ChallengeLCFormat.submissions.length,
     numRegistrants: challengeRegistrants.length,
     numberOfSubmissions: ChallengeLCFormat.submissions.length,
