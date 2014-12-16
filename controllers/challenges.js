@@ -343,7 +343,7 @@ exports.createSubmission = function(req, res, next) {
     .then(function () {
       params.body = {
         title: file.originalFilename,
-        fileUrl: fullFilePath,
+        fileUrl: targetPath,
         size: file.size,
         storageLocation: 'S3'
       };
