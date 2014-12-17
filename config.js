@@ -21,8 +21,6 @@ module.exports = {
   //port: 12345,
   port: process.env.PORT || 3000,
 
-  disableAuth: process.env.TC_SKIP_AUTH || false,
-
   auth0: {
     client: process.env.TC_AUTH0_CLIENT || 'foo',
     secret: process.env.TC_AUTH0_SECRET || 'bar'
