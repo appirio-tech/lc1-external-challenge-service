@@ -87,7 +87,7 @@ module.exports = function(options, config) {
    * Creating knox s3 client
    */
   var s3Client = knox.createClient({
-    secure: options.aws.secure,
+    secure: false,
     key: options.aws.key,
     secret: options.aws.secret,
     bucket: options.aws.bucket,
