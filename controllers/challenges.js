@@ -292,8 +292,6 @@ exports.createSubmission = function(req, res, next) {
         params.submissionId + '/' + fileName;
 
       s3Client.putFile(file.path, targetPath, headers, function(err, s3res) {
-        console.log(err);
-        console.log(s3res);
         if (err) {
           deferred.reject({
             err: err,
