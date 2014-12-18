@@ -293,6 +293,7 @@ exports.createSubmission = function(req, res, next) {
 
       s3Client.putFile(file.path, targetPath, headers, function(err, s3res) {
         if (err) {
+          console.log(err);
           deferred.reject({
             err: err,
             res: s3res
@@ -301,6 +302,7 @@ exports.createSubmission = function(req, res, next) {
           fullFilePath = s3res.req.url;
           deferred.resolve(s3res);
         } else {
+          console.log(err);
           deferred.reject({
             err: s3res.code,
             res: s3res
