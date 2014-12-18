@@ -299,7 +299,7 @@ exports.createSubmission = function(req, res, next) {
           });
         }
 
-        if (200 === s3res.code) {
+        if (s3res && 200 === s3res.code) {
           fullFilePath = s3res.req.url;
           deferred.resolve(s3res);
         } else {
