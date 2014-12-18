@@ -140,7 +140,7 @@ function checkTerms(req) {
 
   request({
     method: 'GET',
-    uri: config.tcApi + '/terms/' + config.tcTermChallengeId,
+    uri: config.tcApi + '/terms/detail/' + parseInt(config.tcTermId),
     qs: queryParams,
     headers: headers
   }, function(error, response, body) {
@@ -178,35 +178,16 @@ exports.register = function(req, res, next) {
 
  checkTerms(req)
    .then(function(result) {
-
-     var allPassed = true;
-     /*_.forEach(result.terms, function(terms) {
-        if (!terms.agreed) {
-          allPassed = false;
-        }
-     });*/
-
-     var term = _.find(result.body.terms, {termsOfUseId: parseInt(config.tcTermId) });
-
-     if (term) {
-       allPassed = term.agreed;
-     }
-
-     if (allPassed) {
+     if (result.body.agreed) {
 
        var params = {
          challengeId: req.params.challengeId,
-         body: {
-           userId: req.user.tcUser.id,
-           userHandle: req.user.tcUser.handle,
-           role: 'SUBMITTER'
-         },
          headers: {
            Authorization: req.headers.authorization
          }
        };
 
-       client.postChallengesByChallengeIdParticipants(params)
+       client.register(params)
          .then(function (result) {
            req.data = {
              message: "ok"

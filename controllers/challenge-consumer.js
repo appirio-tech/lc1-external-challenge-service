@@ -3382,4 +3382,126 @@ module.exports.Challenge = function(domain) {
 
         return deferred.promise;
     };
+
+    this.register = function(parameters) {
+        if (parameters === undefined) {
+            parameters = {};
+        }
+        var deferred = Q.defer();
+
+        var path = '/challenges/{challengeId}/register';
+
+        var queryParameters = {};
+        var headers = parameters.headers;
+
+        path = path.replace('{challengeId}', parameters['challengeId']);
+
+        if (parameters['challengeId'] === undefined) {
+            deferred.reject(new Error('Missing required  parameter: challengeId'));
+            return deferred.promise;
+        }
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters)
+              .forEach(function(parameterName) {
+                  var parameter = parameters.$queryParameters[parameterName];
+                  queryParameters[parameterName] = parameter;
+              });
+        }
+
+        request({
+            method: 'GET',
+            uri: domain + path,
+            qs: queryParameters,
+            headers: headers,
+            rejectUnauthorized: false
+        }, function(error, response, body) {
+            if (error) {
+                deferred.reject(error);
+            } else {
+                if (/^application\/(.*\\+)?json/.test(response.headers['content-type'])) {
+                    try {
+                        body = JSON.parse(body);
+                    } catch (e) {
+
+                    }
+                }
+                if (response.statusCode >= 200 && response.statusCode <= 299) {
+                    deferred.resolve({
+                        response: response,
+                        body: body
+                    });
+                } else {
+                    deferred.reject({
+                        response: response,
+                        body: body
+                    });
+                }
+            }
+        });
+
+        return deferred.promise;
+    };
+
+    this.submit = function(parameters) {
+        if (parameters === undefined) {
+            parameters = {};
+        }
+        var deferred = Q.defer();
+
+        var path = '/challenges/{challengeId}/submit';
+
+        var queryParameters = {};
+        var headers = parameters.headers;
+
+        path = path.replace('{challengeId}', parameters['challengeId']);
+
+        if (parameters['challengeId'] === undefined) {
+            deferred.reject(new Error('Missing required  parameter: challengeId'));
+            return deferred.promise;
+        }
+
+        if (parameters.$queryParameters) {
+            Object.keys(parameters.$queryParameters)
+              .forEach(function(parameterName) {
+                  var parameter = parameters.$queryParameters[parameterName];
+                  queryParameters[parameterName] = parameter;
+              });
+        }
+
+        request({
+            method: 'GET',
+            uri: domain + path,
+            qs: queryParameters,
+            headers: headers,
+            rejectUnauthorized: false
+        }, function(error, response, body) {
+            if (error) {
+                deferred.reject(error);
+            } else {
+                if (/^application\/(.*\\+)?json/.test(response.headers['content-type'])) {
+                    try {
+                        body = JSON.parse(body);
+                    } catch (e) {
+
+                    }
+                }
+                if (response.statusCode >= 200 && response.statusCode <= 299) {
+                    deferred.resolve({
+                        response: response,
+                        body: body
+                    });
+                } else {
+                    deferred.reject({
+                        response: response,
+                        body: body
+                    });
+                }
+            }
+        });
+
+        return deferred.promise;
+    };
+
+
 };
