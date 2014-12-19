@@ -292,7 +292,6 @@ exports.createSubmission = function(req, res, next) {
         params.submissionId + '/' + fileName;
 
       s3Client.putFile(file.path, targetPath, headers, function(err, s3res) {
-        console.log(err);
         if (err) {
           console.log('Error Upload to S3');
           console.log(err);
@@ -304,8 +303,8 @@ exports.createSubmission = function(req, res, next) {
           fullFilePath = s3res.req.url;
           deferred.resolve(s3res);
         } else {
-          console.log('Error Upload to S3 part 2');
-          console.log(err);
+          console.log('S3 upload not 200');
+          console.log(s3res);
           deferred.reject({
             err: s3res.statusCode,
             res: s3res
