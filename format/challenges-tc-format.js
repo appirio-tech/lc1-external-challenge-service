@@ -121,7 +121,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     if (scorecard) {
       returnValue.lcScorecardId = scorecard.id;
       returnValue.placement = scorecard.place;
-      returnValue.finalScore = scorecard.scoreSum;
+      returnValue.finalScore = scorecard.scorePercent;
     }
 
     return returnValue;
@@ -229,7 +229,7 @@ module.exports.convertResult = function(ChallengeLCFormat) {
         placement: scorecard.place,
         screeningScore: 0,
         initialScore: 0,
-        finalScore: scorecard.scoreSum,
+        finalScore: scorecard.scorePercent,
         points: 0,
         submissionStatus: submissionStatus,
         submissionDate: new Date(scorecard.submission.createdAt).toISOString(),

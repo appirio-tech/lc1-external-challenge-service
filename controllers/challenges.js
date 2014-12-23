@@ -26,7 +26,7 @@ function _getChallengeParams(reqParams) {
   // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
   // so using userId property for registrant handle.
   var params = {
-    fields: challengeFields+',participants,submissions,scorecards(id,submission,submissionId,scoreSum,scoreMax,pay,place,prize)'
+    fields: challengeFields+',participants,submissions,scorecards(id,submission,submissionId,scoreSum,scoreMax,pay,place,prize,scorePercent)'
   };
   if (reqParams) {
     _.extend(params, reqParams);
@@ -94,7 +94,7 @@ exports.getResults = function(req, res, next) {
   // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
   // so using userId property for registrant handle.
   var params = {
-    fields: challengeFields + ',participants,submissions,scorecards(id,submission(status,files,submitterId,createdAt,submitterHandle),submissionId,scoreSum,scoreMax,pay,place,prize)'
+    fields: challengeFields + ',participants,submissions,scorecards(id,submission(status,files,submitterId,createdAt,submitterHandle),submissionId,scoreSum,scoreMax,pay,place,prize,scorePercent)'
   };
   _.extend(params, req.params);
 
