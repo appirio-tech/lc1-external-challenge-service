@@ -108,6 +108,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
     var returnValue = {
       lcSubmissionId: submission.id,
       lcSubmitterId: submission.submitterId,
+      lcSubmissionFileId: 0,
       handle: submission.submitterHandle,
       screeningScore: 0,
       initialScore: 0,
@@ -225,6 +226,7 @@ module.exports.convertResult = function(ChallengeLCFormat) {
         lcScorecardId: scorecard.id,
         lcSubmissionId: scorecard.submission.id,
         lcSubmitterId: scorecard.submission.submitterId,
+        lcSubmissionFileId: scorecard.submission.file[0].id,
         handle: scorecard.submission.submitterHandle,
         placement: scorecard.place,
         screeningScore: 0,
@@ -233,7 +235,7 @@ module.exports.convertResult = function(ChallengeLCFormat) {
         points: 0,
         submissionStatus: submissionStatus,
         submissionDate: new Date(scorecard.submission.createdAt).toISOString(),
-        submissionDownloadLink: scorecard.submission.files[0].fileUrl
+        submissionDownloadLink: ''
       };
     } else {
       return false;
