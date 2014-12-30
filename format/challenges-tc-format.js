@@ -222,11 +222,13 @@ module.exports.convertResult = function(ChallengeLCFormat) {
           break;
       }
 
+      var submissionFileId = scorecard.submission.files[0] ? scorecard.submission.files[0].id : 0;
+
       return {
         lcScorecardId: scorecard.id,
         lcSubmissionId: scorecard.submission.id,
         lcSubmitterId: scorecard.submission.submitterId,
-        lcSubmissionFileId: scorecard.submission.file[0].id,
+        lcSubmissionFileId: submissionFileId,
         handle: scorecard.submission.submitterHandle,
         placement: scorecard.place,
         screeningScore: 0,
