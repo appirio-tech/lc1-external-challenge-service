@@ -234,6 +234,7 @@ module.exports.convertResult = function(ChallengeLCFormat) {
         lcSubmitterId: scorecard.submission.submitterId,
         lcSubmissionFileId: submissionFileId,
         handle: scorecard.submission.submitterHandle,
+        registrationDate: scorecard.submission.createdAt,
         placement: scorecard.place,
         screeningScore: 0,
         initialScore: 0,
