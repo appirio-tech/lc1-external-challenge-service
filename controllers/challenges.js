@@ -433,7 +433,7 @@ exports.getSubmissionFileUrl = function(req, res, next) {
     submissionId: req.params.submissionId
   };
 
-  client.getSubmissionLink(params, 'upload')
+  client.getSubmissionLink(params, 'download')
     .then(function(result) {
       req.data = result.body;
     })
