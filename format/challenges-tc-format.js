@@ -80,9 +80,12 @@ module.exports.Convert = function(ChallengeLCFormat) {
   // @TODO only do this for detail requests
   var detailData = "## Overview ##\n" + ChallengeLCFormat.overview +
     "\n## Description ##\n" +  ChallengeLCFormat.description;
+
   if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {
+    var requirements = _.sortBy(ChallengeLCFormat.requirements, 'id');
+
     detailData += "\n## Requirements ##";
-    detailData += _.reduce(ChallengeLCFormat.requirements, function (text, item) {
+    detailData += _.reduce(requirements, function (text, item) {
       return text + "\n 1. " + item.requirementText;
     }, '');
   }
