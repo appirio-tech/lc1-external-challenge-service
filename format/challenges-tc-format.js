@@ -158,6 +158,8 @@ module.exports.Convert = function(ChallengeLCFormat) {
   finalSubmissionGuidelines += '<li>Domain Logic Diagram</li>';
   finalSubmissionGuidelines += '<li>Approach Doc / Readme</li>';
 
+  challengeRegistrants = _.filter(challengeRegistrants);
+
   return {
     source: 'serenity',
     isLC: true,
@@ -249,6 +251,8 @@ module.exports.convertResult = function(ChallengeLCFormat) {
     }
 
   });
+
+  results = _.filter(results);
 
   return {
     isLC: true,
