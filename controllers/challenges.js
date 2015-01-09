@@ -195,7 +195,10 @@ exports.register = function(req, res, next) {
          })
          .fail(function (err) {
            console.log(err);
-           routeHelper.addError(req, err);
+           req.error = {
+             code: err.body.result.status,
+             details: err.body.content
+           }
          })
          .fin(function () {
            next();
