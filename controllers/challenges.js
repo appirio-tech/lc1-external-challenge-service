@@ -195,10 +195,13 @@ exports.register = function(req, res, next) {
          })
          .fail(function (err) {
            console.log(err);
-           req.error = {
-             code: err.body.result.status,
-             details: err.body.content
+           req.data = {
+             error: {
+               code: err.body.result.status,
+               details: err.body.content
+             }
            }
+
          })
          .fin(function () {
            next();
