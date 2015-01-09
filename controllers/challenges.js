@@ -368,15 +368,31 @@ exports.getChallengeTerms = function(req, res, next) {
    "agreed": false
    },*/
 
-  req.data = {terms: [{
-    termsOfUseId: config.tcTermId,
-    title: "Standard Terms for TopCoder Competitions v1.0",
-    url: "",
-    agreeabilityType: "Electronically-agreeable",
-    agreed: false
-  }]};
+  checkTerms(req)
+    .then(function(result) {
+      if (result.body.agreed) {
 
-  next();
+        req.data = {
+          terms: [
+            {
+              termsOfUseId: result.body.termsOfUseId,
+              agreed: result.body.agreed,
+              agreeabilityType: result.body.agreeabilityType,
+              title: result.body.title,
+              url: result.body.url
+            }
+          ]
+        };
+
+        next();
+      }
+    })
+    .fail(function(err) {
+      console.log(err);
+      routeHelper.addError(req, err);
+      next();
+    })
+    .done();
 };
 
 exports.getChallengeFileUrl = function(req, res, next) {
