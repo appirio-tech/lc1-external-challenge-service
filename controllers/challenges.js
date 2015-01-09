@@ -200,7 +200,7 @@ exports.register = function(req, res, next) {
                code: err.body.result.status,
                details: err.body.content
              }
-           }
+           };
 
          })
          .fin(function () {
