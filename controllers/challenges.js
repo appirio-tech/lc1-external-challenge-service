@@ -359,52 +359,24 @@ exports.createSubmission = function(req, res, next) {
  */
 exports.getChallengeTerms = function(req, res, next) {
 
-  var params = {
-    role: 'Submitter'
-  };
+  // Hard code this for now
+  /*{
+   "termsOfUseId": 20703,
+   "title": "Standard Terms for TopCoder Competitions v1.0",
+   "url": "",
+   "agreeabilityType": "Electronically-agreeable",
+   "agreed": false
+   },*/
 
-  var headers = {
-    Authorization: req.headers.authorization
-  };
+  req.data = [{
+    termsOfUseId: config.tcTermId,
+    title: "Standard Terms for TopCoder Competitions v1.0",
+    url: "",
+    agreeabilityType: "Electronically-agreeable",
+    agreed: false
+  }];
 
-  request({
-    method: 'GET',
-    uri: config.tcApi + '/terms/' + config.tcTermChallengeId,
-    qs: params,
-    headers: headers
-  }, function(error, response, body) {
-    if (error) {
-      req.data = {
-        error: {
-          details: "Error loading terms"
-        }
-      };
-
-      next();
-    } else {
-      if (/^application\/(.*\\+)?json/.test(response.headers['content-type'])) {
-        try {
-          body = JSON.parse(body);
-        } catch (e) {
-
-        }
-      }
-      if (response.statusCode >= 200 && response.statusCode <= 299) {
-        req.data = {
-          terms: body.terms
-        };
-      } else {
-        req.data = {
-          error: {
-            details: "Error loading terms"
-          }
-        };
-      }
-
-      next();
-    }
-
-  });
+  next();
 };
 
 exports.getChallengeFileUrl = function(req, res, next) {
