@@ -368,13 +368,13 @@ exports.getChallengeTerms = function(req, res, next) {
    "agreed": false
    },*/
 
-  req.data = [{
+  req.data = {terms: [{
     termsOfUseId: config.tcTermId,
     title: "Standard Terms for TopCoder Competitions v1.0",
     url: "",
     agreeabilityType: "Electronically-agreeable",
     agreed: false
-  }];
+  }]};
 
   next();
 };
