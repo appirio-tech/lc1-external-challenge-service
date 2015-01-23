@@ -89,7 +89,7 @@ module.exports.Convert = function(ChallengeLCFormat) {
       return text + "\n 1. " + item.requirementText;
     }, '');
   }
-  var detailDataHtml = converter.makeHtml(detailData);
+  var detailDataHtml = '<div class="markdownPreview">' + converter.makeHtml(detailData) + '</div>';
 
   var submissions =_.map(ChallengeLCFormat.submissions, function(submission) {
     var submissionStatus;
