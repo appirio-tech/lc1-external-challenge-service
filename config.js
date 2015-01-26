@@ -52,6 +52,8 @@ module.exports = {
      */
     storageProvider : process.env.STORAGE_PROVIDER || 'local'
   },
+
+  disableAuth: process.env.DISABLE_AUTH || false,
   /**
    * Storage providers configuration
    * A storage provider should support two operations

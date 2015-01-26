@@ -21,6 +21,7 @@ var storageProviderFactory = require('./lib/storageProviderFactory');
 var cors = require('cors');
 var request = require('request');
 var bodyParser = require('body-parser');
+var tcAuth = require('./middleware/tc-auth')(config.auth0);
 
 /**
  * Initialize ExpressJS.
@@ -62,12 +63,12 @@ function getTcUser(req, res, next) {
   }
 }
 
-if (!config.disableAuth) {
-  var tcAuth = require('./middleware/tc-auth')(config.auth0);
-  app.post('*', tcAuth);
-  app.put('*', tcAuth);
-  app.delete('*', tcAuth);
-  app.use(getTcUser);
+function authStuff(req, res, next) {
+  if (req.get('Authorization')) {
+    tcAuth(req, res, next);
+  } else {
+    next();
+  }
 }
 
 /**
@@ -75,50 +76,50 @@ if (!config.disableAuth) {
  * Use allActiveChallenges function of challenges controller to handle the request.
  */
 app.route('/getActiveChallenges')
-  .get(challenges.allActiveChallenges, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.allActiveChallenges, routeHelper.renderJson);
 
 /**
  * Define route /challenges/:challengeId using GET method.
  * Use challenge function of challenges controller to handle the request.
  */
 app.route('/develop/challenges/:challengeId')
-  .get(challenges.challenge, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.challenge, routeHelper.renderJson);
 
 /**
  * Fake route for checkpoints
  */
 app.route('/develop/challenges/checkpoint/:challengeId')
-  .get(challenges.getCheckpoints, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.getCheckpoints, routeHelper.renderJson);
 
 /**
  * Get Results
  */
 app.route('/develop/challenges/result/:challengeId')
-    .get(challenges.getResults, routeHelper.renderJson);
+    .get(authStuff, getTcUser, challenges.getResults, routeHelper.renderJson);
 
 /**
  * Register to a challenge
  */
 app.route('/challenges/:challengeId/register')
-  .post(challenges.register, routeHelper.renderJson);
+  .post(tcAuth, getTcUser, challenges.register, routeHelper.renderJson);
 
 /**
  * Get Documents
  */
 app.route('/challenges/:challengeId/documents')
-  .get(challenges.getDocuments, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.getDocuments, routeHelper.renderJson);
 
 app.route('/develop/challenges/:challengeId/upload')
-  .post(challenges.createSubmission, routeHelper.renderJson);
+  .post(tcAuth, getTcUser, challenges.createSubmission, routeHelper.renderJson);
 
 app.route('/terms/:challengeId')
-  .get(challenges.getChallengeTerms, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.getChallengeTerms, routeHelper.renderJson);
 
 app.route('/challenges/:challengeId/files/:fileId/download')
-  .get(challenges.getChallengeFileUrl, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.getChallengeFileUrl, routeHelper.renderJson);
 
 app.route('/challenges/:challengeId/submissions/:submissionId/files/:fileId/download')
-  .get(challenges.getSubmissionFileUrl, routeHelper.renderJson);
+  .get(authStuff, getTcUser, challenges.getSubmissionFileUrl, routeHelper.renderJson);
 
 /**
  * Start listening to a specific port 12345.

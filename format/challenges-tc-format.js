@@ -154,7 +154,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser) {
       return false
     } else {
       // The Owner and Reviewer of a challenge can see all links
-      if (!_.find(['OWNER', 'REVIEWER'], curRole)) {
+      if (!_.contains(['OWNER', 'REVIEWER'], curRole)) {
         if (curRole !== 'SUBMITTER') {
           return false
         }
@@ -189,10 +189,8 @@ module.exports.Convert = function(ChallengeLCFormat, curUser) {
         lcScorecardId: 0
       };
     } else if (!checkUserSubmission(participantSubmission)) {
-      participantSubmission = {
-        lcSubmissionId: 0,
-        lcScorecardId: 0
-      };
+      participantSubmission.lcSubmissionId = 0;
+      participantSubmission.lcScorecardId = 0;
     }
 
     return {
