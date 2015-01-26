@@ -134,17 +134,18 @@ module.exports.Convert = function(ChallengeLCFormat, curUser) {
 
   // get the current user's role
   var curRole;
+  // Did the current user submit?
+  var curSubmit = false;
+
   if (curUser) {
     var curRoleObj = _.find(ChallengeLCFormat.participants, {userId: curUser.id});
     if (curRoleObj) {
       curRole = curRoleObj.role;
     }
-  }
 
-  // Did the current user submit?
-  var curSubmit = false;
-  if (_.find(submissions, {lcSubmitterId: curUser.id})) {
-    curSubmit = true;
+    if (_.find(submissions, {lcSubmitterId: curUser.id})) {
+      curSubmit = true;
+    }
   }
 
   function checkUserSubmission(submission) {
