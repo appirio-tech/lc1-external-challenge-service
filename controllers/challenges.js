@@ -21,6 +21,14 @@ var CHALLENGE_FIELDS = ['id','regStartAt','subEndAt','completedAt','title','over
       'projectId','projectSource','source','sourceId','status','createdAt','updatedAt','createdBy','updatedBy'];
 
 
+function getCurrentUser(req) {
+  if (req.user) {
+    return req.user.tcUser ? req.user.tcUser : undefined;
+  }
+
+  return undefined;
+}
+
 function _getChallengeParams(reqParams) {
   var challengeFields = CHALLENGE_FIELDS.join(',');
   // @TODO the whole user object can be fetch by using participants(user) fields parameter, but currently user returns null
@@ -51,7 +59,7 @@ exports.allActiveChallenges = function(req, res, next) {
 
     var tcChallenges = [];
     for (var i = 0; i < challenges.length; i++) {
-      tcChallenges.push(ChallengeTCFormat.Convert(challenges[i]));
+      tcChallenges.push(ChallengeTCFormat.Convert(challenges[i], getCurrentUser(req)));
     }
     req.data = tcChallenges;
   })
@@ -74,7 +82,7 @@ exports.challenge = function(req, res, next) {
   client.getChallengesByChallengeId(params)
     .then(function(result) {
       var challenge = result.body.content;
-      req.data = ChallengeTCFormat.Convert(challenge);
+      req.data = ChallengeTCFormat.Convert(challenge, getCurrentUser(req));
     })
     .fail(function (err) {
       routeHelper.addError(req, err);

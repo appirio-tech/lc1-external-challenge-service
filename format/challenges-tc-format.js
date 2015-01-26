@@ -31,7 +31,7 @@ var converter = new Showdown.converter();
  * @param ChallengeLCFormat Challenge data queried from PostgreSQL
  */
 
-module.exports.Convert = function(ChallengeLCFormat) {
+module.exports.Convert = function(ChallengeLCFormat, curUser) {
   var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toISOString();
   var nowInUTC = (new Date()).toUTCString();
   var differenceEndAndNow = new Date(subEndDateInUTC)-new Date(nowInUTC);
@@ -117,7 +117,8 @@ module.exports.Convert = function(ChallengeLCFormat) {
       initialScore: 0,
       submissionStatus: submissionStatus,
       points: 0,
-      submissionDate: new Date(submission.createdAt).toISOString()
+      submissionDate: new Date(submission.createdAt).toISOString(),
+      lcLinkViewable: checkUserSubmission(submission)
     };
 
     var scorecard = _.find(ChallengeLCFormat.scorecards, {submissionId: submission.id});
@@ -131,6 +132,47 @@ module.exports.Convert = function(ChallengeLCFormat) {
     return returnValue;
   });
 
+  // get the current user's role
+  var curRole;
+  if (curUser) {
+    var curRoleObj = _.find(ChallengeLCFormat.participants, {userId: curUser.id});
+    if (curRoleObj) {
+      curRole = curRoleObj.role;
+    }
+  }
+
+  // Did the current user submit?
+  var curSubmit = false;
+  if (_.find(submissions, {lcSubmitterId: curUser.id})) {
+    curSubmit = true;
+  }
+
+  function checkUserSubmission(submission) {
+    // Only register users can see scorecards.
+    if (!curUser || !curRole || typeof submission === 'undefined') {
+      return false
+    } else {
+      // The Owner and Reviewer of a challenge can see all links
+      if (!_.find(['OWNER', 'REVIEWER'], curRole)) {
+        if (curRole !== 'SUBMITTER') {
+          return false
+        }
+
+        // Only members who have submitted can see the scorecard
+        if (!curSubmit) {
+          return false
+        } else {
+          // if the challenge is not complete and this user is not the submitter of this submission
+          if (ChallengeLCFormat.status !== 'COMPLETE' && submission.submitterId !== curUser.id) {
+            return false
+          }
+        }
+      }
+    }
+
+    return true
+  }
+
   var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
 
     if (participant.role !== "SUBMITTER") {
@@ -139,8 +181,12 @@ module.exports.Convert = function(ChallengeLCFormat) {
 
     var participantSubmission = _.findLast(submissions, {lcSubmitterId: participant.userId});
 
-    if (typeof participantSubmission === 'undefined') {
-      participantSubmission = { submissionDate: '', lcSubmissionId: 0};
+    if (!checkUserSubmission(participantSubmission)) {
+      participantSubmission = {
+        submissionDate: '',
+        lcSubmissionId: 0,
+        lcScorecardId: 0
+      };
     }
 
     return {
@@ -150,8 +196,8 @@ module.exports.Convert = function(ChallengeLCFormat) {
       submissionDate: participantSubmission.submissionDate,
       rating: 'N/A',
       colorStyle: 'color: #000000',
-      lcSubmissionId: participantSubmission.lcSubmissionId,
-      lcScorecardId: participantSubmission.lcScorecardId
+      lcSubmissionId: participantSubmission.lcSubmissionId, // this controls the link on the registrants table on www
+      lcScorecardId: participantSubmission.lcScorecardId // this controls the link on the registrants table on www
     };
   });
 
