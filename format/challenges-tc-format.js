@@ -182,9 +182,14 @@ module.exports.Convert = function(ChallengeLCFormat, curUser) {
 
     var participantSubmission = _.findLast(submissions, {lcSubmitterId: participant.userId});
 
-    if (!checkUserSubmission(participantSubmission)) {
+    if (typeof participantSubmission === 'undefined') {
       participantSubmission = {
         submissionDate: '',
+        lcSubmissionId: 0,
+        lcScorecardId: 0
+      };
+    } else if (!checkUserSubmission(participantSubmission)) {
+      participantSubmission = {
         lcSubmissionId: 0,
         lcScorecardId: 0
       };
