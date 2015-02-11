@@ -96,7 +96,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
 
   // if we're returning listings, we don't need to do all these transformations.
   // we just need the length
-  var submissions = isListings ? ChallengeLCFormat.submissions : _.map(ChallengeLCFormat.submissions, function(submission) {
+  var submissions = isListing ? ChallengeLCFormat.submissions : _.map(ChallengeLCFormat.submissions, function(submission) {
     var submissionStatus;
     switch(submission.status) {
       case 'VALID':
