@@ -94,7 +94,9 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
     detailDataHtml = '<div class="markdownPreview">' + converter.makeHtml(detailData) + '</div>';
   }
 
-  var submissions =_.map(ChallengeLCFormat.submissions, function(submission) {
+  // if we're returning listings, we don't need to do all these transformations.
+  // we just need the length
+  var submissions = isListing ? ChallengeLCFormat.submissions : _.map(ChallengeLCFormat.submissions, function(submission) {
     var submissionStatus;
     switch(submission.status) {
       case 'VALID':
@@ -146,7 +148,9 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
       curRole = curRoleObj.role;
     }
 
-    if (_.find(submissions, {lcSubmitterId: curUser.id})) {
+    // if it's listings, we didn't do a transformation
+    var searchObj = isListing ? {id: curUser.id} : {lcSubmitterId: curUser.id};
+    if (_.find(submissions, searchObj)) {
       curSubmit = true;
     }
   }
@@ -182,6 +186,8 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
     if (participant.role !== "SUBMITTER") {
       return false;
     }
+    // for listings, we just want to make sure we're returning submitter role folks
+    if (isListing) return true;
 
     var participantSubmission = _.findLast(submissions, {lcSubmitterId: participant.userId});
 
@@ -215,6 +221,54 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
   finalSubmissionGuidelines += '<li>Approach Doc / Readme</li>';
 
   challengeRegistrants = _.filter(challengeRegistrants);
+
+  // similar to the non-listings object, but excludes registrants and submissions
+  if (isListing) {
+    return {
+      source: 'serenity',
+      isLC: true,
+      challengeType: 'Architecture',
+      challengeName: ChallengeLCFormat.title,
+      challengeUrl: config.urlPrefix + ChallengeLCFormat.id,
+      challengeId: ChallengeLCFormat.id,
+      projectId: null,
+      forumId: null,
+      detailedRequirements: detailDataHtml,
+      finalSubmissionGuidelines: finalSubmissionGuidelines,
+      screeningScorecardId: null,
+      reviewScorecardId: null,
+      cmcTaskId: "",
+      numberOfCheckpointsPrizes: 0,
+      topCheckPointPrize: "",
+      platforms: ChallengeLCFormat.tags,
+      technology: ChallengeLCFormat.tags,
+      numSubmissions: ChallengeLCFormat.submissions.length,
+      numRegistrants: challengeRegistrants.length,
+      numberOfSubmissions: ChallengeLCFormat.submissions.length,
+      numberOfRegistrants: challengeRegistrants.length,
+      postingDate: new Date(ChallengeLCFormat.regStartAt).toISOString(),
+      registrationEndDate: ChallengeLCFormat.subEndAt,
+      checkpointSubmissionEndDate: null,
+      submissionEndDate: ChallengeLCFormat.subEndAt,
+      type: "develop",
+      forumLink: "#lc-discussion",
+      appealsEndDate: "",
+      finalFixEndDate: "",
+      currentStatus: currentStatus,
+      digitalRunPoints: 0,
+      reliabilityBonus: 0,
+      directUrl: null,
+      isPrivate: false,
+      currentPhaseEndDate: currentPhaseEndDate,
+      currentPhaseRemainingTime: differenceEndAndNow,
+      currentPhaseName: phaseStatus,
+      prizes: ChallengeLCFormat.prizes || [],
+      prize: ChallengeLCFormat.prizes || [],
+      challengeCommunity: 'develop',
+      phases: [{scheduledStartTime: ChallengeLCFormat.regStartAt}],
+      event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15"},
+    };
+  }
 
   return {
     source: 'serenity',
