@@ -94,7 +94,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
     detailDataHtml = '<div class="markdownPreview">' + converter.makeHtml(detailData) + '</div>';
   }
 
-  var submissions =_.map(ChallengeLCFormat.submissions, function(submission) {
+  var submissions = isListings ? ChallengeLCFormat.submissions : _.map(ChallengeLCFormat.submissions, function(submission) {
     var submissionStatus;
     switch(submission.status) {
       case 'VALID':
@@ -146,7 +146,8 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
       curRole = curRoleObj.role;
     }
 
-    if (_.find(submissions, {lcSubmitterId: curUser.id})) {
+    var searchObj = isListings ? {id: curUser.id} : {lcSubmitterId: curUser.id};
+    if (_.find(submissions, searchObj)) {
       curSubmit = true;
     }
   }
@@ -260,7 +261,6 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
       challengeCommunity: 'develop',
       phases: [{scheduledStartTime: ChallengeLCFormat.regStartAt}],
       event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15"},
-      submissions: submissions
     };
   }
 
