@@ -178,11 +178,12 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
     return true
   }
 
-  var challengeRegistrants = isListings ? ChallengeLCFormat.participants : _.map(ChallengeLCFormat.participants, function(participant) {
+  var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
 
     if (participant.role !== "SUBMITTER") {
       return false;
     }
+    if (isListings) return true;
 
     var participantSubmission = _.findLast(submissions, {lcSubmitterId: participant.userId});
 
