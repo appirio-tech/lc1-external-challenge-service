@@ -31,7 +31,7 @@ var converter = new Showdown.converter();
  * @param ChallengeLCFormat Challenge data queried from PostgreSQL
  */
 
-module.exports.Convert = function(ChallengeLCFormat, curUser) {
+module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
   var subEndDateInUTC = new Date(ChallengeLCFormat.subEndAt).toISOString();
   var nowInUTC = (new Date()).toUTCString();
   var differenceEndAndNow = new Date(subEndDateInUTC)-new Date(nowInUTC);
@@ -78,18 +78,21 @@ module.exports.Convert = function(ChallengeLCFormat, curUser) {
 
   // merge overview, description and requirement details as detail data
   // @TODO only do this for detail requests
-  var detailData = "## Overview ##\n" + ChallengeLCFormat.overview +
-    "\n## Description ##\n" +  ChallengeLCFormat.description;
+  var detailDataHtml = '';
+  if (!isListing) {
+    var detailData = "## Overview ##\n" + ChallengeLCFormat.overview +
+      "\n## Description ##\n" +  ChallengeLCFormat.description;
 
-  if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {
-    var requirements = _.sortBy(ChallengeLCFormat.requirements, 'id');
+    if (ChallengeLCFormat.requirements && ChallengeLCFormat.requirements.length) {
+      var requirements = _.sortBy(ChallengeLCFormat.requirements, 'id');
 
-    detailData += "\n## Requirements ##";
-    detailData += _.reduce(requirements, function (text, item) {
-      return text + "\n 1. " + item.requirementText;
-    }, '');
+      detailData += "\n## Requirements ##";
+      detailData += _.reduce(requirements, function (text, item) {
+        return text + "\n 1. " + item.requirementText;
+      }, '');
+    }
+    detailDataHtml = '<div class="markdownPreview">' + converter.makeHtml(detailData) + '</div>';
   }
-  var detailDataHtml = '<div class="markdownPreview">' + converter.makeHtml(detailData) + '</div>';
 
   var submissions =_.map(ChallengeLCFormat.submissions, function(submission) {
     var submissionStatus;
