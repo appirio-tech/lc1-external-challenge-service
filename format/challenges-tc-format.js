@@ -149,7 +149,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
     }
 
     // if it's listings, we didn't do a transformation
-    var searchObj = isListings ? {id: curUser.id} : {lcSubmitterId: curUser.id};
+    var searchObj = isListing ? {id: curUser.id} : {lcSubmitterId: curUser.id};
     if (_.find(submissions, searchObj)) {
       curSubmit = true;
     }
@@ -187,7 +187,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
       return false;
     }
     // for listings, we just want to make sure we're returning submitter role folks
-    if (isListings) return true;
+    if (isListing) return true;
 
     var participantSubmission = _.findLast(submissions, {lcSubmitterId: participant.userId});
 
@@ -223,7 +223,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
   challengeRegistrants = _.filter(challengeRegistrants);
 
   // similar to the non-listings object, but excludes registrants and submissions
-  if (isListings) {
+  if (isListing) {
     return {
       source: 'serenity',
       isLC: true,
