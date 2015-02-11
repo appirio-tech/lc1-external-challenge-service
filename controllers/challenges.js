@@ -59,7 +59,7 @@ exports.allActiveChallenges = function(req, res, next) {
 
     var tcChallenges = [];
     for (var i = 0; i < challenges.length; i++) {
-      tcChallenges.push(ChallengeTCFormat.Convert(challenges[i], getCurrentUser(req)));
+      tcChallenges.push(ChallengeTCFormat.Convert(challenges[i], getCurrentUser(req), true));
     }
     req.data = tcChallenges;
   })
