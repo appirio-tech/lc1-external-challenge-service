@@ -177,7 +177,7 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
     return true
   }
 
-  var challengeRegistrants = _.map(ChallengeLCFormat.participants, function(participant) {
+  var challengeRegistrants = isListings ? ChallengeLCFormat.participants : _.map(ChallengeLCFormat.participants, function(participant) {
 
     if (participant.role !== "SUBMITTER") {
       return false;
@@ -215,6 +215,54 @@ module.exports.Convert = function(ChallengeLCFormat, curUser, isListing) {
   finalSubmissionGuidelines += '<li>Approach Doc / Readme</li>';
 
   challengeRegistrants = _.filter(challengeRegistrants);
+
+  if (isListings) {
+    return {
+      source: 'serenity',
+      isLC: true,
+      challengeType: 'Architecture',
+      challengeName: ChallengeLCFormat.title,
+      challengeUrl: config.urlPrefix + ChallengeLCFormat.id,
+      challengeId: ChallengeLCFormat.id,
+      projectId: null,
+      forumId: null,
+      detailedRequirements: detailDataHtml,
+      finalSubmissionGuidelines: finalSubmissionGuidelines,
+      screeningScorecardId: null,
+      reviewScorecardId: null,
+      cmcTaskId: "",
+      numberOfCheckpointsPrizes: 0,
+      topCheckPointPrize: "",
+      platforms: ChallengeLCFormat.tags,
+      technology: ChallengeLCFormat.tags,
+      numSubmissions: ChallengeLCFormat.submissions.length,
+      numRegistrants: challengeRegistrants.length,
+      numberOfSubmissions: ChallengeLCFormat.submissions.length,
+      numberOfRegistrants: challengeRegistrants.length,
+      postingDate: new Date(ChallengeLCFormat.regStartAt).toISOString(),
+      registrationEndDate: ChallengeLCFormat.subEndAt,
+      checkpointSubmissionEndDate: null,
+      submissionEndDate: ChallengeLCFormat.subEndAt,
+      type: "develop",
+      forumLink: "#lc-discussion",
+      appealsEndDate: "",
+      finalFixEndDate: "",
+      currentStatus: currentStatus,
+      digitalRunPoints: 0,
+      reliabilityBonus: 0,
+      directUrl: null,
+      isPrivate: false,
+      currentPhaseEndDate: currentPhaseEndDate,
+      currentPhaseRemainingTime: differenceEndAndNow,
+      currentPhaseName: phaseStatus,
+      prizes: ChallengeLCFormat.prizes || [],
+      prize: ChallengeLCFormat.prizes || [],
+      challengeCommunity: 'develop',
+      phases: [{scheduledStartTime: ChallengeLCFormat.regStartAt}],
+      event: {"id": 3442, "description": "2015 topcoder Open", "shortDescription": "tco15"},
+      submissions: submissions
+    };
+  }
 
   return {
     source: 'serenity',
