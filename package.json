@@ -20,7 +20,7 @@
     "pg": "^3.4.1",
     "q": "^1.0.1",
     "request": "^2.47.0",
-    "request-json": "~0.5.0",
+    "request-json": "~0.6.5",
     "sequelize": "^1.7.9",
     "showdown": "^0.3.1"
   }
